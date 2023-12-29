@@ -2014,6 +2014,7 @@ case $choice in
       ;;
 
     34)
+      clear
       cd /home/ && ls -t /home/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
       check_port
       install_dependency
