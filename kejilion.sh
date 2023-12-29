@@ -1,4 +1,9 @@
 #!/bin/bash
+ipv4_address() {
+ipv4_address=$(curl -s ipv4.ip.sb)
+
+}
+
 
 install() {
     if [ $# -eq 0 ]; then
@@ -56,6 +61,12 @@ break_end() {
       clear
 }
 
+kejilion() {
+            cd ~
+            ./kejilion.sh
+            exit
+}
+
 check_port() {
     # 定义要检测的端口
     PORT=443
@@ -75,9 +86,8 @@ check_port() {
             echo -e "\e[1;31m端口 $PORT 已被占用，无法安装环境，卸载以下程序后重试！\e[0m"
             echo "$result"
             break_end
-            cd ~
-            ./kejilion.sh
-            exit
+            kejilion
+
         fi
     else
         echo ""
@@ -247,8 +257,8 @@ nginx_status() {
 
 
 add_yuming() {
-      external_ip=$(curl -s ipv4.ip.sb)
-      echo -e "先将域名解析到本机IP: \033[33m$external_ip\033[0m"
+      ipv4_address
+      echo -e "先将域名解析到本机IP: \033[33m$ipv4_address\033[0m"
       read -p "请输入你解析的域名: " yuming
 }
 
@@ -264,10 +274,10 @@ add_db() {
 }
 
 reverse_proxy() {
-      external_ip=$(curl -s ipv4.ip.sb)
+      ipv4_address
       wget -O /home/web/conf.d/$yuming.conf https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
       sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
-      sed -i "s/0.0.0.0/$external_ip/g" /home/web/conf.d/$yuming.conf
+      sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
       sed -i "s/0000/$duankou/g" /home/web/conf.d/$yuming.conf
       docker restart nginx
 }
@@ -287,8 +297,8 @@ docker_app() {
 if docker inspect "$docker_name" &>/dev/null; then
     clear
     echo "$docker_name 已安装，访问地址: "
-    external_ip=$(curl -s ipv4.ip.sb)
-    echo "http:$external_ip:$docker_port"
+    ipv4_address
+    echo "http:$ipv4_address:$docker_port"
     echo ""
     echo "应用操作"
     echo "------------------------"
@@ -310,9 +320,9 @@ if docker inspect "$docker_name" &>/dev/null; then
             echo "$docker_name 已经安装完成"
             echo "------------------------"
             # 获取外部 IP 地址
-            external_ip=$(curl -s ipv4.ip.sb)
+            ipv4_address
             echo "您可以使用以下地址访问:"
-            echo "http:$external_ip:$docker_port"
+            echo "http:$ipv4_address:$docker_port"
             $docker_use
             $docker_passwd
             ;;
@@ -349,9 +359,9 @@ else
             echo "$docker_name 已经安装完成"
             echo "------------------------"
             # 获取外部 IP 地址
-            external_ip=$(curl -s ipv4.ip.sb)
+            ipv4_address
             echo "您可以使用以下地址访问:"
-            echo "http:$external_ip:$docker_port"
+            echo "http:$ipv4_address:$docker_port"
             $docker_use
             $docker_passwd
             ;;
@@ -399,8 +409,7 @@ case $choice in
     clear
     # 函数: 获取IPv4和IPv6地址
     fetch_ip_addresses() {
-      ipv4_address=$(curl -s ipv4.ip.sb)
-      # ipv6_address=$(curl -s ipv6.ip.sb)
+      ipv4_address
       ipv6_address=$(curl -s --max-time 2 ipv6.ip.sb)
 
     }
@@ -761,9 +770,8 @@ case $choice in
               ;;
 
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
+
               ;;
 
           *)
@@ -1132,9 +1140,8 @@ case $choice in
               esac
               ;;
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
+
               ;;
           *)
               echo "无效的输入!"
@@ -1214,9 +1221,8 @@ case $choice in
               curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
               ;;
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
+
               ;;
           *)
               echo "无效的输入!"
@@ -1340,9 +1346,8 @@ case $choice in
           esac
               ;;
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
+
               ;;
           *)
               echo "无效的输入!"
@@ -1406,8 +1411,8 @@ case $choice in
 
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-      localhostIP=$(curl -s ipv4.ip.sb)
-      sed -i "s/localhost/$localhostIP/g" /home/web/conf.d/default.conf
+      ipv4_address
+      sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
 
       # 下载 docker-compose.yml 文件并进行替换
       wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
@@ -1747,8 +1752,8 @@ case $choice in
 
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-      localhostIP=$(curl -s ipv4.ip.sb)
-      sed -i "s/localhost/$localhostIP/g" /home/web/conf.d/default.conf
+      ipv4_address
+      sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
 
       docker rm -f nginx >/dev/null 2>&1
       docker rmi nginx >/dev/null 2>&1
@@ -1764,8 +1769,8 @@ case $choice in
 
       22)
       clear
-      external_ip=$(curl -s ipv4.ip.sb)
-      echo -e "先将域名解析到本机IP: \033[33m$external_ip\033[0m"
+      ipv4_address
+      echo -e "先将域名解析到本机IP: \033[33m$ipv4_address\033[0m"
       read -p "请输入你的域名: " yuming
       read -p "请输入跳转域名: " reverseproxy
 
@@ -1786,8 +1791,8 @@ case $choice in
 
       23)
       clear
-      external_ip=$(curl -s ipv4.ip.sb)
-      echo -e "先将域名解析到本机IP: \033[33m$external_ip\033[0m"
+      ipv4_address
+      echo -e "先将域名解析到本机IP: \033[33m$ipv4_address\033[0m"
       read -p "请输入你的域名: " yuming
       read -p "请输入你的反代IP: " reverseproxy
       read -p "请输入你的反代端口: " port
@@ -2135,8 +2140,8 @@ case $choice in
 
           wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
           wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-          localhostIP=$(curl -s ipv4.ip.sb)
-          sed -i "s/localhost/$localhostIP/g" /home/web/conf.d/default.conf
+          ipv4_address
+          sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
 
           docker run -d --name nginx --restart always --network web_default -p 80:80 -p 443:443 -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx
           docker exec -it nginx chmod -R 777 /var/www/html
@@ -2266,9 +2271,7 @@ case $choice in
         ;;
 
     0)
-        cd ~
-        ./kejilion.sh
-        exit
+        kejilion
       ;;
 
     *)
@@ -2707,9 +2710,9 @@ case $choice in
                     mkdir -p /home/docker      # 递归创建目录
                     echo "$yuming" > /home/docker/mail.txt  # 写入文件
                     echo "------------------------"
-                    external_ip=$(curl -s ipv4.ip.sb)
+                    ipv4_address
                     echo "先解析这些DNS记录"
-                    echo "A           mail            $external_ip"
+                    echo "A           mail            $ipv4_address"
                     echo "CNAME       imap            $yuming"
                     echo "CNAME       pop             $yuming"
                     echo "CNAME       smtp            $yuming"
@@ -2754,8 +2757,8 @@ case $choice in
 
                     clear
                     echo "rocket.chat已安装，访问地址: "
-                    external_ip=$(curl -s ipv4.ip.sb)
-                    echo "http:$external_ip:3897"
+                    ipv4_address
+                    echo "http:$ipv4_address:3897"
                     echo ""
 
                     echo "应用操作"
@@ -2776,11 +2779,11 @@ case $choice in
                             docker run --name rocketchat --restart=always -p 3897:3000 --link db --env ROOT_URL=http://localhost --env MONGO_OPLOG_URL=mongodb://db:27017/rs5 -d rocket.chat
 
                             clear
-                            external_ip=$(curl -s ipv4.ip.sb)
+                            ipv4_address
                             echo "rocket.chat已经安装完成"
                             echo "------------------------"
                             echo "多等一会，您可以使用以下地址访问rocket.chat:"
-                            echo "http:$external_ip:3897"
+                            echo "http:$ipv4_address:3897"
                             echo ""
                             ;;
                         2)
@@ -2824,11 +2827,11 @@ case $choice in
 
                     clear
 
-                    external_ip=$(curl -s ipv4.ip.sb)
+                    ipv4_address
                     echo "rocket.chat已经安装完成"
                     echo "------------------------"
                     echo "多等一会，您可以使用以下地址访问rocket.chat:"
-                    echo "http:$external_ip:3897"
+                    echo "http:$ipv4_address:3897"
                     echo ""
 
                         ;;
@@ -2885,8 +2888,8 @@ case $choice in
 
                     clear
                     echo "cloudreve已安装，访问地址: "
-                    external_ip=$(curl -s ipv4.ip.sb)
-                    echo "http:$external_ip:5212"
+                    ipv4_address
+                    echo "http:$ipv4_address:5212"
                     echo ""
 
                     echo "应用操作"
@@ -2914,8 +2917,8 @@ case $choice in
                             echo "cloudreve已经安装完成"
                             echo "------------------------"
                             echo "您可以使用以下地址访问cloudreve:"
-                            external_ip=$(curl -s ipv4.ip.sb)
-                            echo "http:$external_ip:5212"
+                            ipv4_address
+                            echo "http:$ipv4_address:5212"
                             sleep 3
                             docker logs cloudreve
                             echo ""
@@ -2958,8 +2961,8 @@ case $choice in
                     echo "cloudreve已经安装完成"
                     echo "------------------------"
                     echo "您可以使用以下地址访问cloudreve:"
-                    external_ip=$(curl -s ipv4.ip.sb)
-                    echo "http:$external_ip:5212"
+                    ipv4_address
+                    echo "http:$ipv4_address:5212"
                     sleep 3
                     docker logs cloudreve
                     echo ""
@@ -3074,8 +3077,8 @@ case $choice in
 
                     clear
                     echo "雷池已安装，访问地址: "
-                    external_ip=$(curl -s ipv4.ip.sb)
-                    echo "http:$external_ip:9443"
+                    ipv4_address
+                    echo "http:$ipv4_address:9443"
                     echo ""
 
                     echo "应用操作"
@@ -3125,8 +3128,8 @@ case $choice in
                     echo "雷池WAF面板已经安装完成"
                     echo "------------------------"
                     echo "您可以使用以下地址访问:"
-                    external_ip=$(curl -s ipv4.ip.sb)
-                    echo "http:$external_ip:9443"
+                    ipv4_address
+                    echo "http:$ipv4_address:9443"
                     echo ""
 
                         ;;
@@ -3215,8 +3218,8 @@ case $choice in
             if docker inspect "$docker_name" &>/dev/null; then
                 clear
                 echo "$docker_name 已安装，访问地址: "
-                external_ip=$(curl -s ipv4.ip.sb)
-                echo "http:$external_ip:$docker_port"
+                ipv4_address
+                echo "http:$ipv4_address:$docker_port"
                 echo ""
                 echo "应用操作"
                 echo "------------------------"
@@ -3239,9 +3242,9 @@ case $choice in
                         echo "$docker_name 已经安装完成"
                         echo "------------------------"
                         # 获取外部 IP 地址
-                        external_ip=$(curl -s ipv4.ip.sb)
+                        ipv4_address
                         echo "您可以使用以下地址访问:"
-                        echo "http:$external_ip:$docker_port"
+                        echo "http:$ipv4_address:$docker_port"
 
                         ;;
                     2)
@@ -3302,9 +3305,9 @@ case $choice in
                         echo "$docker_name 已经安装完成"
                         echo "------------------------"
                         # 获取外部 IP 地址
-                        external_ip=$(curl -s ipv4.ip.sb)
+                        ipv4_address
                         echo "您可以使用以下地址访问:"
-                        echo "http:$external_ip:$docker_port"
+                        echo "http:$ipv4_address:$docker_port"
 
                         ;;
                     [Nn])
@@ -3324,9 +3327,7 @@ case $choice in
               ;;
 
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
               ;;
           *)
               echo "无效的输入!"
@@ -3457,9 +3458,7 @@ case $choice in
               tmux list-sessions
               ;;
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
               ;;
           *)
               echo "无效的输入!"
@@ -4653,52 +4652,51 @@ EOF
 
 
           21)
-          clear
-          install sshpass
+            clear
+            install sshpass
 
-          remote_ip="66.42.61.110"
-          remote_user="liaotian123"
-          remote_file="/home/liaotian123/liaotian.txt"
-          password="kejilionYYDS"  # 替换为您的密码
+            remote_ip="66.42.61.110"
+            remote_user="liaotian123"
+            remote_file="/home/liaotian123/liaotian.txt"
+            password="kejilionYYDS"  # 替换为您的密码
 
-          clear
-          echo "科技lion留言板"
-          echo "------------------------"
-          # 显示已有的留言内容
-          sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "cat '${remote_file}'"
-          echo ""
-          echo "------------------------"
+            clear
+            echo "科技lion留言板"
+            echo "------------------------"
+            # 显示已有的留言内容
+            sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "cat '${remote_file}'"
+            echo ""
+            echo "------------------------"
 
-          # 判断是否要留言
-          read -p "是否要留言？(y/n): " leave_message
+            # 判断是否要留言
+            read -p "是否要留言？(y/n): " leave_message
 
-          if [ "$leave_message" == "y" ] || [ "$leave_message" == "Y" ]; then
-              # 输入新的留言内容
-              read -p "输入你的昵称: " nicheng
-              read -p "输入你的聊天内容: " neirong
+            if [ "$leave_message" == "y" ] || [ "$leave_message" == "Y" ]; then
+                # 输入新的留言内容
+                read -p "输入你的昵称: " nicheng
+                read -p "输入你的聊天内容: " neirong
 
-              # 添加新留言到远程文件
-              sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "echo -e '${nicheng}: ${neirong}' >> '${remote_file}'"
-              echo "已添加留言: "
-              echo "${nicheng}: ${neirong}"
-              echo ""
-          else
-              echo "您选择了不留言。"
-          fi
+                # 添加新留言到远程文件
+                sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "echo -e '${nicheng}: ${neirong}' >> '${remote_file}'"
+                echo "已添加留言: "
+                echo "${nicheng}: ${neirong}"
+                echo ""
+            else
+                echo "您选择了不留言。"
+            fi
 
-          echo "留言板操作完成。"
+            echo "留言板操作完成。"
 
               ;;
 
           99)
-          clear
-          echo "正在重启服务器，即将断开SSH连接"
-          reboot
+              clear
+              echo "正在重启服务器，即将断开SSH连接"
+              reboot
               ;;
           0)
-              cd ~
-              ./kejilion.sh
-              exit
+              kejilion
+
               ;;
           *)
               echo "无效的输入!"
@@ -4717,8 +4715,7 @@ EOF
     curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
     echo "脚本已更新到最新版本！"
     break_end
-    ./kejilion.sh
-    exit
+    kejilion
     ;;
 
   0)
