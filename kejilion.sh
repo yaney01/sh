@@ -1,8 +1,20 @@
 #!/bin/bash
+
+# 判断是否已经存在 alias
+if ! grep -q "alias k='./kejilion.sh'" ~/.bashrc; then
+    # 如果不存在，则添加 alias
+    echo "alias k='./kejilion.sh'" >> ~/.bashrc
+    source ~/.bashrc
+else
+    clear
+fi
+
+
 ipv4_address() {
 ipv4_address=$(curl -s ipv4.ip.sb)
 
 }
+
 
 
 install() {
@@ -231,6 +243,13 @@ install_ssltls() {
 }
 
 
+default_server_ssl() {
+install openssl
+openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
+
+}
+
+
 nginx_status() {
 
     nginx_container_name="nginx"
@@ -383,6 +402,12 @@ fi
 while true; do
 clear
 
+echo -e "\033[96m_  _ ____  _ _ _    _ ____ _  _ "
+echo "|_/  |___  | | |    | |  | |\ | "
+echo "| \_ |___ _| | |___ | |__| | \| "
+echo "                                "
+echo -e "\033[96m科技lion一键脚本工具 v2.1.7 （支持Ubuntu/Debian/CentOS系统）\033[0m"
+echo -e "\033[96m-输入\033[93mk\033[96m可快速启动此脚本-\033[0m"
 echo "------------------------"
 echo "1. 系统信息查询"
 echo "2. 系统更新"
@@ -420,7 +445,7 @@ case $choice in
     if [ "$(uname -m)" == "x86_64" ]; then
       cpu_info=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed -e 's/model name[[:space:]]*: //')
     else
-      cpu_info=$(lscpu | grep 'Model name' | sed -e 's/Model name[[:space:]]*: //')
+      cpu_info=$(lscpu | grep 'BIOS Model name' | awk -F': ' '{print $2}' | sed 's/^[ \t]*//')
     fi
 
     cpu_usage=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
@@ -430,7 +455,7 @@ case $choice in
 
     mem_info=$(free -b | awk 'NR==2{printf "%.2f/%.2f MB (%.2f%%)", $3/1024/1024, $2/1024/1024, $3*100/$2}')
 
-    disk_info=$(df -h | awk '$NF=="/"{printf "%d/%dGB (%s)", $3,$2,$5}')
+    disk_info=$(df -h | awk '$NF=="/"{printf "%s/%s (%s)", $3, $2, $5}')
 
     country=$(curl -s ipinfo.io/country)
     city=$(curl -s ipinfo.io/city)
@@ -1411,8 +1436,7 @@ case $choice in
 
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-      ipv4_address
-      sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
+      default_server_ssl
 
       # 下载 docker-compose.yml 文件并进行替换
       wget -O /home/web/docker-compose.yml https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
@@ -1752,9 +1776,7 @@ case $choice in
 
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-      ipv4_address
-      sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
-
+      default_server_ssl
       docker rm -f nginx >/dev/null 2>&1
       docker rmi nginx >/dev/null 2>&1
       docker run -d --name nginx --restart always -p 80:80 -p 443:443 -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx
@@ -1882,6 +1904,11 @@ case $choice in
         dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
         docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
 
+        echo "------------------------"
+        echo ""
+        echo "站点目录"
+        echo "------------------------"
+        echo -e "数据 \e[37m/home/web/html\e[0m     证书 \e[37m/home/web/certs\e[0m     配置 \e[37m/home/web/conf.d\e[0m"
         echo "------------------------"
         echo ""
         echo "操作"
@@ -2140,9 +2167,7 @@ case $choice in
 
           wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
           wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-          ipv4_address
-          sed -i "s/localhost/$ipv4_address/g" /home/web/conf.d/default.conf
-
+          default_server_ssl
           docker run -d --name nginx --restart always --network web_default -p 80:80 -p 443:443 -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx
           docker exec -it nginx chmod -R 777 /var/www/html
 
@@ -2293,12 +2318,13 @@ case $choice in
       echo "7. 哪吒探针VPS监控面板                  8. QB离线BT磁力下载面板"
       echo "9. Poste.io邮件服务器程序               10. RocketChat多人在线聊天系统"
       echo "11. 禅道项目管理软件                    12. 青龙面板定时任务管理平台"
-      echo "13. Cloudreve网盘系统                   14. 简单图床图片管理程序"
+      echo "13. Cloudreve网盘                       14. 简单图床图片管理程序"
       echo "15. emby多媒体管理系统                  16. Speedtest测速服务面板"
       echo "17. AdGuardHome去广告软件               18. onlyoffice在线办公OFFICE"
       echo "19. 雷池WAF防火墙面板                   20. portainer容器管理面板"
       echo "21. VScode网页版                        22. UptimeKuma监控工具"
       echo "23. Memos网页备忘录                     24. pandoranext潘多拉GPT镜像站"
+      echo "25. Nextcloud网盘"
       echo "------------------------"
       echo "0. 返回主菜单"
       echo "------------------------"
@@ -2473,53 +2499,88 @@ case $choice in
             fi
               ;;
           3)
-            clear
-            echo "安装提示"
-            echo "如果您已经安装了其他面板工具或者LDNMP建站环境，建议先卸载，再安装1Panel！"
-            echo "会根据系统自动安装，支持Debian，Ubuntu，Centos"
-            echo "官网介绍: https://1panel.cn/"
-            echo ""
-            # 获取当前系统类型
-            get_system_type() {
-              if [ -f /etc/os-release ]; then
-                . /etc/os-release
-                if [ "$ID" == "centos" ]; then
-                  echo "centos"
-                elif [ "$ID" == "ubuntu" ]; then
-                  echo "ubuntu"
-                elif [ "$ID" == "debian" ]; then
-                  echo "debian"
-                else
-                  echo "unknown"
-                fi
-              else
-                echo "unknown"
-              fi
-            }
+            if command -v 1pctl &> /dev/null; then
+                clear
+                echo "1Panel已安装，应用操作"
+                echo ""
+                echo "------------------------"
+                echo "1. 查看1Panel信息           2. 卸载1Panel"
+                echo "------------------------"
+                echo "0. 返回上一级选单"
+                echo "------------------------"
+                read -p "请输入你的选择: " sub_choice
 
-            system_type=$(get_system_type)
+                case $sub_choice in
+                    1)
+                        clear
+                        1pctl user-info
+                        1pctl update password
+                        ;;
+                    2)
+                        clear
+                        1pctl uninstall
 
-            if [ "$system_type" == "unknown" ]; then
-              echo "不支持的操作系统类型"
+                        ;;
+                    0)
+                        break  # 跳出循环，退出菜单
+                        ;;
+                    *)
+                        break  # 跳出循环，退出菜单
+                        ;;
+                esac
             else
-              read -p "确定安装1Panel吗？(Y/N): " choice
-              case "$choice" in
-                [Yy])
-                  iptables_open
-                  if [ "$system_type" == "centos" ]; then
-                    curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && sh quick_start.sh
-                  elif [ "$system_type" == "ubuntu" ]; then
-                    curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh
-                  elif [ "$system_type" == "debian" ]; then
-                    curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh
+
+                clear
+                echo "安装提示"
+                echo "如果您已经安装了其他面板工具或者LDNMP建站环境，建议先卸载，再安装1Panel！"
+                echo "会根据系统自动安装，支持Debian，Ubuntu，Centos"
+                echo "官网介绍: https://1panel.cn/"
+                echo ""
+                # 获取当前系统类型
+                get_system_type() {
+                  if [ -f /etc/os-release ]; then
+                    . /etc/os-release
+                    if [ "$ID" == "centos" ]; then
+                      echo "centos"
+                    elif [ "$ID" == "ubuntu" ]; then
+                      echo "ubuntu"
+                    elif [ "$ID" == "debian" ]; then
+                      echo "debian"
+                    else
+                      echo "unknown"
+                    fi
+                  else
+                    echo "unknown"
                   fi
-                  ;;
-                [Nn])
-                  ;;
-                *)
-                  ;;
-              esac
+                }
+
+                system_type=$(get_system_type)
+
+                if [ "$system_type" == "unknown" ]; then
+                  echo "不支持的操作系统类型"
+                else
+                  read -p "确定安装1Panel吗？(Y/N): " choice
+                  case "$choice" in
+                    [Yy])
+                      iptables_open
+                      install_docker
+                      if [ "$system_type" == "centos" ]; then
+                        curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && sh quick_start.sh
+                      elif [ "$system_type" == "ubuntu" ]; then
+                        curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh
+                      elif [ "$system_type" == "debian" ]; then
+                        curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh
+                      fi
+                      ;;
+                    [Nn])
+                      ;;
+                    *)
+                      ;;
+                  esac
+                fi
             fi
+
+
               ;;
           4)
 
@@ -3319,12 +3380,21 @@ case $choice in
                 esac
             fi
 
-
-
-
-
-
               ;;
+
+          25)
+            docker_name="nextcloud"
+            docker_img="nextcloud:latest"
+            docker_port=8989
+            rootpasswd=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)
+            docker_rum="docker run -d --name nextcloud --restart=always -p 8989:80 -v /home/docker/nextcloud:/var/www/html -e NEXTCLOUD_ADMIN_USER=nextcloud -e NEXTCLOUD_ADMIN_PASSWORD=$rootpasswd nextcloud"
+            docker_describe="Nextcloud拥有超过 400,000 个部署，是您可以下载的最受欢迎的本地内容协作平台"
+            docker_url="官网介绍: https://nextcloud.com/"
+            docker_use="echo \"账号: nextcloud  密码: $rootpasswd\""
+            docker_passwd=""
+            docker_app
+              ;;
+
 
           0)
               kejilion
@@ -3509,7 +3579,8 @@ case $choice in
               clear
               read -p "请输入你的快捷按键: " kuaijiejian
               echo "alias $kuaijiejian='./kejilion.sh'" >> ~/.bashrc
-              echo "快捷键已添加。请重新启动终端，或运行 'source ~/.bashrc' 以使修改生效。"
+              source ~/.bashrc
+              echo "快捷键已设置"
               ;;
 
           2)
@@ -4091,9 +4162,25 @@ case $choice in
 
                   case $sub_choice in
                       1)
+                        apt purge -y 'linux-*xanmod1*'
+                        update-grub
+
+                        # wget -qO - https://dl.xanmod.org/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+                        wget -qO - https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+
+                        # 步骤3：添加存储库
+                        echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
+
+                        # version=$(wget -q https://dl.xanmod.org/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+                        version=$(wget -q https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+
                         apt update -y
-                        apt upgrade -y
+                        apt install -y linux-xanmod-x64v$version
+
                         echo "XanMod内核已更新。重启后生效"
+                        rm -f /etc/apt/sources.list.d/xanmod-release.list
+                        rm -f check_x86-64_psabi.sh*
+
                         reboot
 
                           ;;
