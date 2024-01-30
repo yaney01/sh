@@ -106,11 +106,9 @@ check_port() {
 install_add_docker() {
     if [ -f "/etc/alpine-release" ]; then
         apk update
-        apk add docker
+        apk add docker docker-compose
         rc-update add docker default
         service docker start
-        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        chmod +x /usr/local/bin/docker-compose
     else
         curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
         systemctl start docker
@@ -501,8 +499,14 @@ case $choice in
       cpu_info=$(lscpu | grep 'BIOS Model name' | awk -F': ' '{print $2}' | sed 's/^[ \t]*//')
     fi
 
-    cpu_usage=$(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')
-    cpu_usage_percent=$(printf "%.2f" "$cpu_usage")%
+    if [ -f /etc/alpine-release ]; then
+        # Alpine Linux 使用以下命令获取 CPU 使用率
+        cpu_usage_percent=$(top -bn1 | grep '^CPU' | awk '{print " "$4}' | cut -c 1-2)
+    else
+        # 其他系统使用以下命令获取 CPU 使用率
+        cpu_usage_percent=$(top -bn1 | grep "Cpu(s)" | awk '{print " "$2}')
+    fi
+
 
     cpu_cores=$(nproc)
 
@@ -587,7 +591,7 @@ case $choice in
     echo "CPU型号: $cpu_info"
     echo "CPU核心数: $cpu_cores"
     echo "------------------------"
-    echo "CPU占用: $cpu_usage_percent"
+    echo "CPU占用: $cpu_usage_percent%"
     echo "物理内存: $mem_info"
     echo "虚拟内存: $swap_info"
     echo "硬盘占用: $disk_info"
@@ -1223,8 +1227,7 @@ case $choice in
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
-                  remove docker docker-ce > /dev/null 2>&1
-                  rm -rf /var/lib/docker
+                  remove docker docker-ce docker-compose > /dev/null 2>&1
                   ;;
                 [Nn])
                   ;;
