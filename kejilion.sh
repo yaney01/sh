@@ -103,17 +103,29 @@ check_port() {
     fi
 }
 
-
-# 定义安装 Docker 的函数
-install_docker() {
-    if ! command -v docker &>/dev/null; then
+install_add_docker() {
+    if [ -f "/etc/alpine-release" ]; then
+        apk update
+        apk add docker
+        rc-update add docker default
+        service docker start
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+    else
         curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
         systemctl start docker
         systemctl enable docker
+    fi
+}
+
+install_docker() {
+    if ! command -v docker &>/dev/null; then
+        install_add_docker
     else
         echo "Docker 已经安装"
     fi
 }
+
 
 iptables_open() {
     iptables -P INPUT ACCEPT
@@ -453,7 +465,7 @@ echo -e "\033[96m_  _ ____  _ _ _    _ ____ _  _ "
 echo "|_/  |___  | | |    | |  | |\ | "
 echo "| \_ |___ _| | |___ | |__| | \| "
 echo "                                "
-echo -e "\033[96m科技lion一键脚本工具 v2.2.6 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
+echo -e "\033[96m科技lion一键脚本工具 v2.2.7 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
 echo -e "\033[96m-输入\033[93mk\033[96m可快速启动此脚本-\033[0m"
 echo "------------------------"
 echo "1. 系统信息查询"
@@ -899,21 +911,7 @@ case $choice in
       case $sub_choice in
           1)
             clear
-
-            if [ -f "/etc/alpine-release" ]; then
-                apk update
-                apk add docker
-                rc-update add docker default
-                service docker start
-                curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-                chmod +x /usr/local/bin/docker-compose
-
-            else
-
-                curl -fsSL https://get.docker.com | sh && ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin
-                systemctl start docker
-                systemctl enable docker
-            fi
+            install_add_docker
 
               ;;
           2)
@@ -1793,7 +1791,7 @@ case $choice in
       add_yuming
       install_ssltls
 
-      docker run -d --name halo --restart always --network web_default -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2.9
+      docker run -d --name halo --restart always --network web_default -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2.11
       duankou=8010
       reverse_proxy
 
