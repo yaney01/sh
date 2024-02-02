@@ -101,7 +101,7 @@ pal_start() {
 
 pal_backup() {
   cd ~
-  curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/pal_backup.sh && chmod +x pal_backup.sh
+  curl -sS -O https://kejilion.pro/pal_backup.sh && chmod +x pal_backup.sh
 }
 
 pal_install_status() {
@@ -149,8 +149,10 @@ echo "7. 导出游戏存档"
 echo "8. 导入游戏存档"
 echo "9. 定时备份游戏存档"
 echo "------------------------"
-echo "10. 更新幻兽帕鲁服务"
-echo "11. 卸载幻兽帕鲁服务"
+echo "10. 修改游戏配置"
+echo "------------------------"
+echo "11. 更新幻兽帕鲁服务"
+echo "12. 卸载幻兽帕鲁服务"
 echo "------------------------"
 echo "k. 科技lion脚本工具箱"
 echo "------------------------"
@@ -173,21 +175,21 @@ case $choice in
 
   2)
     clear
-    docker start steamcmd
+    docker start steamcmd > /dev/null 2>&1
     pal_start
     ;;
 
   3)
     clear
     tmux kill-session -t my1
-    docker stop steamcmd
+    docker stop steamcmd > /dev/null 2>&1
     echo -e "\033[0;32m幻兽帕鲁服务已关闭\033[0m"
     ;;
 
   4)
     clear
     tmux kill-session -t my1
-    docker restart steamcmd
+    docker restart steamcmd > /dev/null 2>&1
     pal_start
     ;;
 
@@ -266,8 +268,8 @@ case $choice in
   7)
     clear
     mkdir -p /home/game
-    docker cp steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/ /home/game/palworld/
-    cd /home/game && tar czvf palworld_$(date +"%Y%m%d%H%M%S").tar.gz palworld
+    docker cp steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/ /home/game/palworld/ > /dev/null 2>&1
+    cd /home/game && tar czvf palworld_$(date +"%Y%m%d%H%M%S").tar.gz palworld > /dev/null 2>&1
     rm -rf /home/game/palworld/
     echo -e "\033[0;32m游戏存档已导出存放在: /home/game/\033[0m"
     ;;
@@ -276,13 +278,13 @@ case $choice in
     tmux kill-session -t my1
     docker exec -it steamcmd bash -c "rm -rf /home/steam/Steam/steamapps/common/PalServer/Pal/Saved/*"
     cd /home/game/ && ls -t /home/game/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
-    docker cp /home/game/palworld/Config steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/Config
-    docker cp /home/game/palworld/ImGui steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/ImGui
-    docker cp /home/game/palworld/SaveGames steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/SaveGames
+    docker cp /home/game/palworld/Config steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/Config > /dev/null 2>&1
+    docker cp /home/game/palworld/ImGui steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/ImGui > /dev/null 2>&1
+    docker cp /home/game/palworld/SaveGames steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/SaveGames > /dev/null 2>&1
     docker exec -it -u root steamcmd bash -c "chmod -R 777 /home/steam/Steam/steamapps/common/PalServer/Pal/Saved/"
     rm -rf /home/game/palworld/
     echo -e "\033[0;32m游戏存档已导入\033[0m"
-    docker restart steamcmd
+    docker restart steamcmd > /dev/null 2>&1
     pal_start
     ;;
 
@@ -321,14 +323,38 @@ case $choice in
   10)
     clear
     tmux kill-session -t my1
-    docker restart steamcmd
+    cd ~ && curl -sS -O https://kejilion.pro/PalWorldSettings.ini
+
+    read -p "设置加入的密码（回车默认无密码）: " server_password
+    read -p "经验值倍率: （回车默认1倍）:" exp_rate
+    ExpRate=${exp_rate:-1}
+
+    # 更新配置文件
+    sed -i "s/ServerPassword=\"\"/ServerPassword=\"$server_password\"/" ~/PalWorldSettings.ini
+    sed -i "s/ExpRate=1.000000/ExpRate=$ExpRate/" ~/PalWorldSettings.ini
+    echo "配置文件已更新"
+
+    docker exec -it steamcmd bash -c "rm -f /home/steam/Steam/steamapps/common/PalServer/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini"
+    docker cp ~/PalWorldSettings.ini steamcmd:/home/steam/Steam/steamapps/common/PalServer/Pal/Saved/Config/LinuxServer/ > /dev/null 2>&1
+    docker exec -it -u root steamcmd bash -c "chmod -R 777 /home/steam/Steam/steamapps/common/PalServer/Pal/Saved/"
+    rm -f ~/PalWorldSettings.ini
+    echo -e "\033[0;32m游戏配置已导入\033[0m"
+    docker restart steamcmd > /dev/null 2>&1
+    pal_start
+    ;;
+
+
+  11)
+    clear
+    tmux kill-session -t my1
+    docker restart steamcmd > /dev/null 2>&1
     docker exec -it steamcmd bash -c "/home/steam/steamcmd/steamcmd.sh +login anonymous +app_update 2394010 validate +quit"
     clear
     echo -e "\033[0;32m幻兽帕鲁已更新\033[0m"
     pal_start
     ;;
 
-  11)
+  12)
     clear
     docker rm -f steamcmd
     docker rmi -f cm2network/steamcmd
@@ -336,16 +362,16 @@ case $choice in
 
   k)
     cd ~
-    curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh
+    curl -sS -O https://kejilion.pro/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh
     exit
     ;;
 
   00)
     cd ~
-    curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/pal_log.sh && chmod +x pal_log.sh && ./pal_log.sh
+    curl -sS -O https://kejilion.pro/pal_log.sh && chmod +x pal_log.sh && ./pal_log.sh
     rm pal_log.sh
     echo ""
-    curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh && chmod +x palworld.sh
+    curl -sS -O https://kejilion.pro/palworld.sh && chmod +x palworld.sh
     echo "脚本已更新到最新版本！"
     break_end
     palworld
