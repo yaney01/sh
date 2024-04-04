@@ -2312,7 +2312,7 @@ EOF
                       echo "到cf后台右上角我的个人资料，选择左侧API令牌，获取Global API Key"
                       echo "https://dash.cloudflare.com/login"
                       read -p "输入CF的账号: " cfuser
-                      read -p "输入远程服务器密码: " cftoken
+                      read -p "输入CF的Global API Key: " cftoken
 
                       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default11.conf
 
@@ -2324,6 +2324,11 @@ EOF
 
                       sed -i "s/kejilion@outlook.com/$cfuser/g" /etc/fail2ban/action.d/cloudflare.conf
                       sed -i "s/APIKEY00000/$cftoken/g" /etc/fail2ban/action.d/cloudflare.conf
+
+                      systemctl restart fail2ban
+                      service fail2ban restart
+                      docker restart nginx
+
                       echo "已配置cloudflare模式，可在cf后台，站点-安全性-事件中查看拦截记录"
                       ;;
 
@@ -2364,6 +2369,7 @@ EOF
           docker exec -it nginx chmod -R 777 /var/www/html
 
           # 获取宿主机当前时区
+          timedatectl set-timezone Asia/Shanghai
           HOST_TIMEZONE=$(timedatectl show --property=Timezone --value)
 
           # 调整多个容器的时区
