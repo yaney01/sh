@@ -521,7 +521,7 @@ echo -e "\033[96m_  _ ____  _ _ _    _ ____ _  _ "
 echo "|_/  |___  | | |    | |  | |\ | "
 echo "| \_ |___ _| | |___ | |__| | \| "
 echo "                                "
-echo -e "\033[96m科技lion一键脚本工具 v2.4 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
+echo -e "\033[96m科技lion一键脚本工具 v2.4.1 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
 echo -e "\033[96m-输入\033[93mk\033[96m可快速启动此脚本-\033[0m"
 echo "------------------------"
 echo "1. 系统信息查询"
@@ -1376,8 +1376,13 @@ EOF
       echo "7. yabs性能带宽测试"
       echo "8. bench性能测试"
       echo "------------------------"
-      echo -e "9. spiritysdx融合怪测评 \033[33mNEW\033[0m"
+      echo "9. spiritysdx融合怪测评"
       echo "------------------------"
+      echo "11. nxtrace快速回程测试脚本"
+      echo "12. nxtrace指定IP回程测试脚本"   
+      echo "------------------------"    
+      echo "13. ludashi2020的三网线路测试"   
+      echo "------------------------"         
       echo "0. 返回主菜单"
       echo "------------------------"
       read -p "请输入你的选择: " sub_choice
@@ -1421,6 +1426,44 @@ EOF
               clear
               curl -L https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh -o ecs.sh && chmod +x ecs.sh && bash ecs.sh
               ;;
+          11)
+              clear
+              curl nxtrace.org/nt |bash
+              nexttrace --fast-trace --tcp
+              ;;
+          12)
+              clear
+              
+              echo "可参考的IP列表"
+              echo "------------------------"
+              echo "北京电信: 219.141.136.12"
+              echo "北京联通: 202.106.50.1"
+              echo "北京移动: 221.179.155.161"
+              echo "上海电信: 202.96.209.133"
+              echo "上海联通: 210.22.97.1"
+              echo "上海移动: 211.136.112.200"
+              echo "广州电信: 58.60.188.222"
+              echo "广州联通: 210.21.196.6"
+              echo "广州移动: 120.196.165.24"
+              echo "成都电信: 61.139.2.69"
+              echo "成都联通: 119.6.6.6"
+              echo "成都移动: 211.137.96.205"
+              echo "湖南电信: 36.111.200.100"
+              echo "湖南联通: 42.48.16.100"
+              echo "湖南移动: 39.134.254.6"
+              echo "------------------------"
+              
+              read -p "输入一个指定IP: " testip
+              curl nxtrace.org/nt |bash
+              nexttrace $testip
+              ;;     
+
+          13)
+              clear
+              curl https://raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh
+              ;;     
+                             
+
           0)
               kejilion
 
@@ -1881,7 +1924,7 @@ EOF
       add_yuming
       install_ssltls
 
-      docker run -d --name halo --restart always --network web_default -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2.11
+      docker run -d --name halo --restart always --network web_default -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2
       duankou=8010
       reverse_proxy
 
@@ -2546,6 +2589,7 @@ EOF
       echo "27. Dockge容器堆栈管理面板              28. LibreSpeed测速工具"
       echo "29. searxng聚合搜索站                   30. PhotoPrism私有相册系统"
       echo "31. StirlingPDF工具大全                 32. drawio免费的在线图表软件"
+      echo "33. Sun-Panel导航面板"      
       echo "------------------------"
       echo "51. PVE开小鸡面板"
       echo "------------------------"
@@ -3643,6 +3687,22 @@ EOF
             docker_app
               ;;
 
+          33)
+            docker_name="sun-panel"
+            docker_img="hslr/sun-panel"
+            docker_port=3009
+            docker_rum="docker run -d --restart=always -p 3009:3002 \
+                            -v /home/docker/sun-panel/conf:/app/conf \
+                            -v /home/docker/sun-panel/uploads:/app/uploads \
+                            -v /home/docker/sun-panel/database:/app/database \
+                            --name sun-panel \
+                            hslr/sun-panel"
+            docker_describe="Sun-Panel服务器、NAS导航面板、Homepage、浏览器首页"
+            docker_url="官网介绍: https://doc.sun-panel.top/zh_cn/"
+            docker_use="echo \"账号: admin@sun.cc  密码: 12345678\""
+            docker_passwd=""
+            docker_app
+              ;;
 
           51)
           clear
