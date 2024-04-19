@@ -585,7 +585,7 @@ f2b_sshd() {
 
 server_reboot() {
 
-    read -p "确定现在重启服务器吗？(Y/N): " rboot
+    read -p $'\e[33m现在重启服务器吗？(Y/N): \e[0m' rboot
     case "$rboot" in
       [Yy])
         echo "已重启"
@@ -2367,7 +2367,7 @@ EOF
 
     35)
 
-        if docker inspect fail2ban &>/dev/null || [ -x "$(command -v fail2ban-client)" ]; then
+        if docker inspect fail2ban &>/dev/null ; then
           while true; do
               clear
               echo "服务器防御程序已启动"
@@ -2442,7 +2442,6 @@ EOF
                       ;;
                   8)
                       tail -f /path/to/fail2ban/config/log/fail2ban/fail2ban.log
-                      break
 
                       ;;
                   9)
@@ -2450,8 +2449,7 @@ EOF
                       rm -rf /path/to/fail2ban
                       remove fail2ban
                       rm -rf /etc/fail2ban
-                      echo "重启后生效"
-                      server_reboot
+                      echo "Fail2Ban防御程序已卸载"
                       break
                       ;;
 
@@ -2494,6 +2492,27 @@ EOF
               break_end
 
           done
+
+      elif [ -x "$(command -v fail2ban-client)" ] ; then
+          clear
+          echo "卸载旧版fail2ban"
+          read -p "确定继续吗？(Y/N): " choice
+          case "$choice" in
+            [Yy])
+              docker rm -f fail2ban
+              rm -rf /path/to/fail2ban
+              remove fail2ban
+              rm -rf /etc/fail2ban
+              echo "Fail2Ban防御程序已卸载"
+              ;;
+            [Nn])
+              echo "已取消"
+              ;;
+            *)
+              echo "无效的选择，请输入 Y 或 N。"
+              ;;
+          esac
+
       else
           clear
           install_docker
@@ -2516,8 +2535,7 @@ EOF
           cd ~
           f2b_status
 
-          echo "防御程序已开启，建议 reboot 重启服务器，完美适配系统。"
-          server_reboot
+          echo "防御程序已开启"
       fi
 
         ;;
@@ -5244,7 +5262,7 @@ EOF
               ;;
 
           22)
-            if docker inspect fail2ban &>/dev/null || [ -x "$(command -v fail2ban-client)" ]; then
+            if docker inspect fail2ban &>/dev/null ; then
                 while true; do
                     clear
                     echo "SSH防御程序已启动"
@@ -5273,8 +5291,7 @@ EOF
                             rm -rf /path/to/fail2ban
                             remove fail2ban
                             rm -rf /etc/fail2ban
-                            echo "重启后生效"
-                            server_reboot
+                            echo "Fail2Ban防御程序已卸载"
 
                             break
                             ;;
@@ -5288,6 +5305,27 @@ EOF
                     break_end
 
                 done
+
+            elif [ -x "$(command -v fail2ban-client)" ] ; then
+                clear
+                echo "卸载旧版fail2ban"
+                read -p "确定继续吗？(Y/N): " choice
+                case "$choice" in
+                  [Yy])
+                    docker rm -f fail2ban
+                    rm -rf /path/to/fail2ban
+                    remove fail2ban
+                    rm -rf /etc/fail2ban
+                    echo "Fail2Ban防御程序已卸载"
+                    ;;
+                  [Nn])
+                    echo "已取消"
+                    ;;
+                  *)
+                    echo "无效的选择，请输入 Y 或 N。"
+                    ;;
+                esac
+
             else
 
               clear
@@ -5306,8 +5344,7 @@ EOF
 
                   cd ~
                   f2b_status
-                  echo "Fail2Ban防御程序已开启，建议 reboot 重启服务器，完美适配系统。"
-                  server_reboot
+                  echo "Fail2Ban防御程序已开启"
 
                   ;;
                 [Nn])
