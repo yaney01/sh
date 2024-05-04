@@ -197,6 +197,9 @@ install_ldnmp() {
           "docker exec nginx chmod -R 777 /var/www/html"
           "docker restart nginx > /dev/null 2>&1"
 
+          # "docker exec php sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+          # "docker exec php74 sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1"
+
           "docker exec php apt update > /dev/null 2>&1"
           "docker exec php apk update > /dev/null 2>&1"
           "docker exec php74 apt update > /dev/null 2>&1"
@@ -748,7 +751,7 @@ echo -e "\033[96m_  _ ____  _ _ _    _ ____ _  _ "
 echo "|_/  |___  | | |    | |  | |\ | "
 echo "| \_ |___ _| | |___ | |__| | \| "
 echo "                                "
-echo -e "\033[96m科技lion一键脚本工具 v2.4.6 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
+echo -e "\033[96m科技lion一键脚本工具 v2.4.7 （支持Ubuntu/Debian/CentOS/Alpine系统）\033[0m"
 echo -e "\033[96m-输入\033[93mk\033[96m可快速启动此脚本-\033[0m"
 echo "------------------------"
 echo "1. 系统信息查询"
@@ -1880,10 +1883,10 @@ EOF
       dbrootpasswd=$(openssl rand -base64 16) && dbuse=$(openssl rand -hex 4) && dbusepasswd=$(openssl rand -base64 8)
 
       # 在 docker-compose.yml 文件中进行替换
-      sed -i "s/webroot/$dbrootpasswd/g" /home/web/docker-compose.yml
-      sed -i "s/kejilionYYDS/$dbusepasswd/g" /home/web/docker-compose.yml
-      sed -i "s/kejilion/$dbuse/g" /home/web/docker-compose.yml
-
+      sed -i "s#webroot#$dbrootpasswd#g" /home/web/docker-compose.yml
+      sed -i "s#kejilionYYDS#$dbusepasswd#g" /home/web/docker-compose.yml
+      sed -i "s#kejilion#$dbuse#g" /home/web/docker-compose.yml
+      
       install_ldnmp
 
         ;;
@@ -2783,7 +2786,7 @@ EOF
       echo "29. searxng聚合搜索站                   30. PhotoPrism私有相册系统"
       echo "31. StirlingPDF工具大全                 32. drawio免费的在线图表软件"
       echo "33. Sun-Panel导航面板                   34. Pingvin-Share文件分享平台"
-      echo "35. 极简朋友圈"
+      echo "35. 极简朋友圈                          36. LobeChatAI聊天聚合网站"
       echo "------------------------"
       echo "51. PVE开小鸡面板"
       echo "------------------------"
@@ -3749,6 +3752,23 @@ EOF
             docker_describe="极简朋友圈，高仿微信朋友圈，记录你的美好生活"
             docker_url="官网介绍: https://github.com/kingwrcy/moments?tab=readme-ov-file"
             docker_use="echo \"账号: admin  密码: a123456\""
+            docker_passwd=""
+            docker_app
+              ;;
+
+
+
+          36)
+            docker_name="lobe-chat"
+            docker_img="lobehub/lobe-chat:latest"
+            docker_port=8036
+            docker_rum="docker run -d -p 8036:3210 \
+                            --name lobe-chat \
+                            --restart=always \
+                            lobehub/lobe-chat"
+            docker_describe="LobeChat聚合市面上主流的AI大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
+            docker_url="官网介绍: https://github.com/lobehub/lobe-chat"
+            docker_use=""
             docker_passwd=""
             docker_app
               ;;
