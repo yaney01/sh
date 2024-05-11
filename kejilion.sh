@@ -107,7 +107,7 @@ check_port() {
             echo ""
         else
             clear
-            echo -e "${hong}端口 $PORT 已被占用，无法安装环境，卸载以下程序后重试！${bai}"
+            echo -e "${hong}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！${bai}"
             echo "$result"
             break_end
             kejilion
@@ -199,20 +199,20 @@ ldnmp_v() {
       # 获取nginx版本
       nginx_version=$(docker exec nginx nginx -v 2>&1)
       nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "nginx : v${huang}$nginx_version${bai}"
+      echo -n -e "nginx : ${huang}v$nginx_version${bai}"
 
       # 获取mysql版本
       dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
       mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-      echo -n -e "            mysql : v${huang}$mysql_version${bai}"
+      echo -n -e "            mysql : ${huang}v$mysql_version${bai}"
 
       # 获取php版本
       php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n -e "            php : v${huang}$php_version${bai}"
+      echo -n -e "            php : ${huang}v$php_version${bai}"
 
       # 获取redis版本
       redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-      echo -e "            redis : v${huang}$redis_version${bai}"
+      echo -e "            redis : ${huang}v$redis_version${bai}"
 
       echo "------------------------"
       echo ""
@@ -318,7 +318,7 @@ install_ldnmp() {
               progressBar+="."
           done
           progressBar+="]"
-          echo -ne "\r[$percentage%] $progressBar"
+          echo -ne "\r[${lv}$percentage%${bai}] $progressBar"
       done
 
       echo  # 打印换行，以便输出不被覆盖
@@ -614,7 +614,7 @@ f2b_sshd() {
 
 server_reboot() {
 
-    read -p "$(echo -e "${huang}现在重启服务器吗？(Y/N): ${bai}")" rboot
+    read -p "$(echo -e "现在${huang}重启服务器${bai}吗？(Y/N): ")" rboot
     case "$rboot" in
       [Yy])
         echo "已重启"
@@ -1333,7 +1333,8 @@ EOF
                           docker stop $(docker ps -q)
                           ;;
                       8)
-                          read -p "确定删除所有容器吗？(Y/N): " choice
+                          read -p "" choice
+                          read -p "$(echo -e "确定${hong}删除所有容器${bai}吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rm -f $(docker ps -a -q)
@@ -1421,7 +1422,7 @@ EOF
                           docker rmi -f $dockername
                           ;;
                       4)
-                          read -p "确定删除所有镜像吗？(Y/N): " choice
+                          read -p "$(echo -e "确定${hong}删除所有镜像${bai}吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rmi -f $(docker images -q)
@@ -1554,7 +1555,7 @@ EOF
               ;;
           7)
               clear
-              read -p "$(echo -e "${huang}确定清理无用的镜像容器网络吗？(Y/N): ${bai}")" choice
+              read -p "$(echo -e "确定${huang}清理无用的镜像容器网络${bai}吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker system prune -af --volumes
@@ -1568,7 +1569,7 @@ EOF
               ;;
           8)
               clear
-              read -p "$(echo -e "${hong}确定卸载docker环境吗？(Y/N): ${bai}")" choice
+              read -p "$(echo -e "确定${hong}卸载docker环境${bai}吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
@@ -2258,7 +2259,7 @@ EOF
       nginx_version=$(docker exec nginx nginx -v 2>&1)
       nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
       echo "nginx已安装完成"
-      echo -e "当前版本: v${huang}$nginx_version${bai}"
+      echo -e "当前版本: ${huang}v$nginx_version${bai}"
       echo ""
         ;;
 
@@ -2851,7 +2852,7 @@ EOF
 
     38)
         clear
-        read -p "$(echo -e "${hong}强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ${bai}")" choice
+        read -p "$(echo -e "强烈建议先备份全部网站数据，再卸载LDNMP环境。确定${hong}删除所有网站数据${bai}吗？(Y/N): ")" choice
         case "$choice" in
           [Yy])
             docker rm -f nginx php php74 mysql redis
@@ -3927,8 +3928,6 @@ EOF
       echo "即使你断开SSH，工作区中的任务也不会中断，非常方便！来试试吧！"
       echo -e "${huang}注意: 进入工作区后使用Ctrl+b再单独按d，退出工作区！${bai}"
       echo "------------------------"
-      echo "a. 安装工作区环境"
-      echo "------------------------"
       echo "1. 1号工作区"
       echo "2. 2号工作区"
       echo "3. 3号工作区"
@@ -3949,69 +3948,76 @@ EOF
       read -p "请输入你的选择: " sub_choice
 
       case $sub_choice in
-          a)
-              clear
-              install tmux
 
-              ;;
           b)
               clear
               remove tmux
               ;;
           1)
               clear
+              install tmux
               SESSION_NAME="work1"
               tmux_run
 
               ;;
           2)
               clear
+              install tmux
               SESSION_NAME="work2"
               tmux_run
               ;;
           3)
               clear
+              install tmux
               SESSION_NAME="work3"
               tmux_run
               ;;
           4)
               clear
+              install tmux
               SESSION_NAME="work4"
               tmux_run
               ;;
           5)
               clear
+              install tmux
               SESSION_NAME="work5"
               tmux_run
               ;;
           6)
               clear
+              install tmux
               SESSION_NAME="work6"
               tmux_run
               ;;
           7)
               clear
+              install tmux
               SESSION_NAME="work7"
               tmux_run
               ;;
           8)
               clear
+              install tmux
               SESSION_NAME="work8"
               tmux_run
               ;;
           9)
               clear
+              install tmux
               SESSION_NAME="work9"
               tmux_run
               ;;
           10)
               clear
+              install tmux
               SESSION_NAME="work10"
               tmux_run
               ;;
 
           99)
               clear
+              install tmux
               tmux list-sessions
               ;;
           0)
@@ -5748,7 +5754,7 @@ EOF
     sh_v_new=$(curl -s https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
     if [ "$sh_v" = "$sh_v_new" ]; then
-        echo -e "${lv}你已经是最新版本！v$sh_v ${bai}"
+        echo -e "${lv}你已经是最新版本！v$sh_v${bai}"
     else
         echo "发现新版本！"
         echo -e "当前版本v$sh_v     最新版本${huang}v$sh_v_new${bai}"
@@ -5758,7 +5764,7 @@ EOF
             [Yy])
                 clear
                 curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
-                echo -e "脚本已更新到最新版本v${huang}$sh_v_new${bai}"
+                echo -e "脚本已更新到最新版本${huang}v$sh_v_new${bai}"
                 break_end
                 kejilion
                 ;;
