@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="2.5.0"
+sh_v="2.5.1"
 
 huang='\033[33m'
 bai='\033[0m'
@@ -133,13 +133,15 @@ install_add_docker() {
     sleep 2
 }
 
+
 install_docker() {
-    if ! command -v docker &>/dev/null; then
+    if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
         install_add_docker
     else
-        echo "Docker 已经安装"
+        echo "Docker环境已经安装"
     fi
 }
+
 
 
 iptables_open() {
@@ -189,8 +191,34 @@ add_swap() {
         echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
     fi
 
-    echo "虚拟内存大小已调整为${new_swap}MB"
+    echo -e "虚拟内存大小已调整为${huang}${new_swap}${bai}MB"
 }
+
+ldnmp_v() {
+
+      # 获取nginx版本
+      nginx_version=$(docker exec nginx nginx -v 2>&1)
+      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "nginx : v${huang}$nginx_version${bai}"
+
+      # 获取mysql版本
+      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
+      echo -n -e "            mysql : v${huang}$mysql_version${bai}"
+
+      # 获取php版本
+      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
+      echo -n -e "            php : v${huang}$php_version${bai}"
+
+      # 获取redis版本
+      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
+      echo -e "            redis : v${huang}$redis_version${bai}"
+
+      echo "------------------------"
+      echo ""
+
+}
+
 
 
 
@@ -299,27 +327,8 @@ install_ldnmp() {
       clear
       echo "LDNMP环境安装完毕"
       echo "------------------------"
+      ldnmp_v
 
-      # 获取nginx版本
-      nginx_version=$(docker exec nginx nginx -v 2>&1)
-      nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n "nginx : v$nginx_version"
-
-      # 获取mysql版本
-      dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-      mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-      echo -n "            mysql : v$mysql_version"
-
-      # 获取php版本
-      php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-      echo -n "            php : v$php_version"
-
-      # 获取redis版本
-      redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-      echo "            redis : v$redis_version"
-
-      echo "------------------------"
-      echo ""
 
 
 }
@@ -605,7 +614,7 @@ f2b_sshd() {
 
 server_reboot() {
 
-    read -p "${huang}现在重启服务器吗？(Y/N): ${bai}" rboot
+    read -p "$(echo -e "${huang}现在重启服务器吗？(Y/N): ${bai}")" rboot
     case "$rboot" in
       [Yy])
         echo "已重启"
@@ -1545,7 +1554,7 @@ EOF
               ;;
           7)
               clear
-              read -p "确定清理无用的镜像容器网络吗？(Y/N): " choice
+              read -p "$(echo -e "${huang}确定清理无用的镜像容器网络吗？(Y/N): ${bai}")" choice
               case "$choice" in
                 [Yy])
                   docker system prune -af --volumes
@@ -1559,7 +1568,7 @@ EOF
               ;;
           8)
               clear
-              read -p "确定卸载docker环境吗？(Y/N): " choice
+              read -p "$(echo -e "${hong}确定卸载docker环境吗？(Y/N): ${bai}")" choice
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
@@ -2236,7 +2245,7 @@ EOF
       install_docker
       install_certbot
 
-      cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
+      cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx
 
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
@@ -2249,7 +2258,7 @@ EOF
       nginx_version=$(docker exec nginx nginx -v 2>&1)
       nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
       echo "nginx已安装完成"
-      echo "当前版本: v$nginx_version"
+      echo -e "当前版本: v${huang}$nginx_version${bai}"
       echo ""
         ;;
 
@@ -2368,7 +2377,7 @@ EOF
       add_yuming
       install_ssltls
 
-      docker run -d --name halo --restart always --network web_default -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2
+      docker run -d --name halo --restart always -p 8010:8090 -v /home/web/html/$yuming/.halo2:/root/.halo2 halohub/halo:2
       duankou=8010
       reverse_proxy
 
@@ -2383,23 +2392,7 @@ EOF
         clear
         echo "LDNMP环境"
         echo "------------------------"
-        # 获取nginx版本
-        nginx_version=$(docker exec nginx nginx -v 2>&1)
-        nginx_version=$(echo "$nginx_version" | grep -oP "nginx/\K[0-9]+\.[0-9]+\.[0-9]+")
-        echo -n "nginx : v$nginx_version"
-        # 获取mysql版本
-        dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-        mysql_version=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SELECT VERSION();" 2>/dev/null | tail -n 1)
-        echo -n "            mysql : v$mysql_version"
-        # 获取php版本
-        php_version=$(docker exec php php -v 2>/dev/null | grep -oP "PHP \K[0-9]+\.[0-9]+\.[0-9]+")
-        echo -n "            php : v$php_version"
-        # 获取redis版本
-        redis_version=$(docker exec redis redis-server -v 2>&1 | grep -oP "v=+\K[0-9]+\.[0-9]+")
-        echo "            redis : v$redis_version"
-        echo "------------------------"
-        echo ""
-
+        ldnmp_v
 
         # ls -t /home/web/conf.d | sed 's/\.[^.]*$//'
         echo "站点信息                      证书到期时间"
@@ -2429,7 +2422,7 @@ EOF
         echo ""
         echo "操作"
         echo "------------------------"
-        echo "1. 申请/更新域名证书               2. 更换站点域名"
+        echo -e "1. 申请/更新域名证书               ${hui}2. 更换站点域名${bai}"
         echo "3. 清理站点缓存                    4. 查看站点分析报告"
         echo "5. 查看全局配置                    6. 查看站点配置"
         echo "------------------------"
@@ -2858,12 +2851,13 @@ EOF
 
     38)
         clear
-        read -p "强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): " choice
+        read -p "$(echo -e "${hong}强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ${bai}")" choice
         case "$choice" in
           [Yy])
             docker rm -f nginx php php74 mysql redis
             docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
             rm -rf /home/web
+
             ;;
           [Nn])
 
@@ -4266,14 +4260,14 @@ EOF
           8)
 
           dd_xitong_2() {
-            echo "任意键继续，重装后初始用户名: root  初始密码: LeitboGi0ro  初始端口: 22"
+            echo -e "任意键继续，重装后初始用户名: ${huang}root${bai}  初始密码: ${huang}LeitboGi0ro${bai}  初始端口: ${huang}22${bai}"
             read -n 1 -s -r -p ""
             install wget
             wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
           }
 
           dd_xitong_3() {
-            echo "任意键继续，重装后初始用户名: Administrator  初始密码: Teddysun.com  初始端口: 3389"
+            echo -e "任意键继续，重装后初始用户名: ${huang}Administrator${bai}  初始密码: ${huang}Teddysun.com${bai}  初始端口: ${huang}3389${bai}"
             read -n 1 -s -r -p ""
             install wget
             wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
@@ -5461,9 +5455,9 @@ EOF
             if [ -f ~/Limiting_Shut_down.sh ]; then
                 # 获取 threshold_gb 的值
                 threshold_gb=$(grep -oP 'threshold_gb=\K\d+' ~/Limiting_Shut_down.sh)
-                echo "当前设置的限流阈值为 ${threshold_gb}GB"
+                echo -e "当前设置的限流阈值为 ${hang}${threshold_gb}${bai}GB"
             else
-                echo "当前未启用限流关机功能"
+                echo -e "${hui}前未启用限流关机功能${bai}"
             fi
 
             echo
@@ -5764,7 +5758,7 @@ EOF
             [Yy])
                 clear
                 curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
-                echo -e "脚本已更新到最新版本${huang}v$sh_v_new${bai}"
+                echo -e "脚本已更新到最新版本v${huang}$sh_v_new${bai}"
                 break_end
                 kejilion
                 ;;
