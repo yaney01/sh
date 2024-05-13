@@ -919,9 +919,42 @@ echo "------------------------"
 
 }
 
+add_sshkey() {
+
+ssh-keygen -t rsa -b 4096 -C "xxxx@gmail.com" -f /root/.ssh/sshkey -N ""
+
+cat ~/.ssh/sshkey.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
 
 
+ip_address
+echo -e "私钥信息已生成，务必复制保存，可保存成 ${huang}${ipv4_address}_sshkey.ppk${bai} 文件，用于以后的SSH登录"
+echo "--------------------------------"
+cat ~/.ssh/sshkey
+echo "--------------------------------"
 
+sed -i -e 's/^\s*#\?\s*PermitRootLogin .*/PermitRootLogin prohibit-password/' \
+       -e 's/^\s*#\?\s*PasswordAuthentication .*/PasswordAuthentication no/' \
+       -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
+       -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+
+
+if command -v dnf &>/dev/null; then
+    systemctl restart sshd
+elif command -v yum &>/dev/null; then
+    systemctl restart sshd
+elif command -v apt &>/dev/null; then
+    service ssh restart
+elif command -v apk &>/dev/null; then
+    service sshd restart
+else
+    echo "未知的包管理器!"
+    return 1
+fi
+
+echo -e "${lv}ROOT私钥登录已开启，已关闭ROOT密码登录，重连将会生效${bai}"
+
+}
 
 
 while true; do
@@ -4133,7 +4166,7 @@ case $choice in
       echo "1. 设置脚本启动快捷键"
       echo "------------------------"
       echo "2. 修改ROOT密码"
-      echo "3. 开启ROOT密码登录模式"
+      echo "3. ROOT密码登录模式"
       echo "4. 安装Python最新版"
       echo "5. 开放所有端口"
       echo "6. 修改SSH连接端口"
@@ -4154,6 +4187,7 @@ case $choice in
       echo "21. 本机host解析"
       echo "22. fail2banSSH防御程序"
       echo "23. 限流自动关机"
+      echo "24. ROOT私钥登录模式"
       echo "------------------------"
       echo "31. 留言板"
       echo "------------------------"
@@ -5559,6 +5593,29 @@ EOF
 
               ;;
 
+
+          24)
+
+              clear
+              echo "ROOT私钥登录模式"
+              echo "------------------------------------------------"
+              echo "将会生成密钥对，更安全的方式SSH登录"
+              read -p "确定继续吗？(Y/N): " choice
+
+              case "$choice" in
+                [Yy])
+                  clear
+                  add_sshkey
+                  ;;
+                [Nn])
+                  echo "已取消"
+                  ;;
+                *)
+                  echo "无效的选择，请输入 Y 或 N。"
+                  ;;
+              esac
+
+              ;;
 
           31)
             clear
