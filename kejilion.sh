@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="2.5.1"
+sh_v="2.5.2"
 
 huang='\033[33m'
 bai='\033[0m'
@@ -766,6 +766,33 @@ install_panel() {
             fi
 
 }
+
+
+
+current_timezone() {
+    if grep -q 'Alpine' /etc/issue; then
+       :
+    else
+       timedatectl show --property=Timezone --value
+    fi
+
+}
+
+
+set_timedate() {
+    shiqu="$1"
+    if grep -q 'Alpine' /etc/issue; then
+        install tzdata
+        cp /usr/share/zoneinfo/${shiqu} /etc/localtime
+        hwclock --systohc
+    else
+        timedatectl set-timezone ${shiqu}
+    fi
+}
+
+
+
+
 
 
 
@@ -4679,18 +4706,19 @@ EOF
               ;;
 
           15)
+
             while true; do
                 clear
                 echo "系统时间信息"
 
                 # 获取当前系统时区
-                current_timezone=$(timedatectl show --property=Timezone --value)
+                timezone=$(current_timezone)
 
                 # 获取当前系统时间
                 current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
                 # 显示时区和时间
-                echo "当前系统时区：$current_timezone"
+                echo "当前系统时区：$timezone"
                 echo "当前系统时间：$current_time"
 
                 echo ""
@@ -4713,27 +4741,28 @@ EOF
                 echo "------------------------"
                 read -p "请输入你的选择: " sub_choice
 
+
                 case $sub_choice in
-                    1) timedatectl set-timezone Asia/Shanghai ;;
-                    2) timedatectl set-timezone Asia/Hong_Kong ;;
-                    3) timedatectl set-timezone Asia/Tokyo ;;
-                    4) timedatectl set-timezone Asia/Seoul ;;
-                    5) timedatectl set-timezone Asia/Singapore ;;
-                    6) timedatectl set-timezone Asia/Kolkata ;;
-                    7) timedatectl set-timezone Asia/Dubai ;;
-                    8) timedatectl set-timezone Australia/Sydney ;;
-                    11) timedatectl set-timezone Europe/London ;;
-                    12) timedatectl set-timezone Europe/Paris ;;
-                    13) timedatectl set-timezone Europe/Berlin ;;
-                    14) timedatectl set-timezone Europe/Moscow ;;
-                    15) timedatectl set-timezone Europe/Amsterdam ;;
-                    16) timedatectl set-timezone Europe/Madrid ;;
-                    21) timedatectl set-timezone America/Los_Angeles ;;
-                    22) timedatectl set-timezone America/New_York ;;
-                    23) timedatectl set-timezone America/Vancouver ;;
-                    24) timedatectl set-timezone America/Mexico_City ;;
-                    25) timedatectl set-timezone America/Sao_Paulo ;;
-                    26) timedatectl set-timezone America/Argentina/Buenos_Aires ;;
+                    1) set_timedate Asia/Shanghai ;;
+                    2) set_timedate Asia/Hong_Kong ;;
+                    3) set_timedate Asia/Tokyo ;;
+                    4) set_timedate Asia/Seoul ;;
+                    5) set_timedate Asia/Singapore ;;
+                    6) set_timedate Asia/Kolkata ;;
+                    7) set_timedate Asia/Dubai ;;
+                    8) set_timedate Australia/Sydney ;;
+                    11) set_timedate Europe/London ;;
+                    12) set_timedate Europe/Paris ;;
+                    13) set_timedate Europe/Berlin ;;
+                    14) set_timedate Europe/Moscow ;;
+                    15) set_timedate Europe/Amsterdam ;;
+                    16) set_timedate Europe/Madrid ;;
+                    21) set_timedate America/Los_Angeles ;;
+                    22) set_timedate America/New_York ;;
+                    23) set_timedate America/Vancouver ;;
+                    24) set_timedate America/Mexico_City ;;
+                    25) set_timedate America/Sao_Paulo ;;
+                    26) set_timedate America/Argentina/Buenos_Aires ;;
                     0) break ;; # 跳出循环，退出菜单
                     *) break ;; # 跳出循环，退出菜单
                 esac
@@ -5746,24 +5775,28 @@ EOF
 
   00)
     cd ~
-    curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/update_log.sh && chmod +x update_log.sh && ./update_log.sh
-    rm update_log.sh
+    clear
+    echo "更新日志"
+    echo "------------------------"
+    echo "全部日志: https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
+    echo "------------------------"
+    curl -s https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
     echo ""
-
+    echo ""
     sh_v_new=$(curl -s https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
     if [ "$sh_v" = "$sh_v_new" ]; then
         echo -e "${lv}你已经是最新版本！${huang}v$sh_v${bai}"
     else
         echo "发现新版本！"
-        echo -e "当前版本v$sh_v     最新版本${huang}v$sh_v_new${bai}"
+        echo -e "当前版本 v$sh_v        最新版本 ${huang}v$sh_v_new${bai}"
         echo "------------------------"
         read -p "确定更新脚本吗？(Y/N): " choice
         case "$choice" in
             [Yy])
                 clear
                 curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
-                echo -e "${lv}脚本已更新到最新版本${huang}v$sh_v_new${bai}"
+                echo -e "${lv}脚本已更新到最新版本！${huang}v$sh_v_new${bai}"
                 break_end
                 kejilion
                 ;;
