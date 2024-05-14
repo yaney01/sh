@@ -13,6 +13,8 @@ hui='\e[37m'
 cp ./kejilion.sh /usr/local/bin/k > /dev/null 2>&1
 
 
+
+
 ip_address() {
 ipv4_address=$(curl -s ipv4.ip.sb)
 ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
@@ -949,7 +951,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 
 ip_address
-echo -e "私钥信息已生成，务必复制保存，可保存成 ${huang}${ipv4_address}_sshkey.ppk${bai} 文件，用于以后的SSH登录"
+echo -e "私钥信息已生成，务必复制保存，可保存成 ${huang}${ipv4_address}_ssh.key${bai} 文件，用于以后的SSH登录"
 echo "--------------------------------"
 cat ~/.ssh/sshkey
 echo "--------------------------------"
@@ -976,6 +978,12 @@ echo -e "${lv}ROOT登录设置完毕！${bai}"
 server_reboot
 
 
+}
+
+
+root_use() {
+clear
+[ "$EUID" -ne 0 ] && echo -e "${huang}请注意，该功能需要root用户才能运行！${bai}" && break_end && kejilion
 }
 
 
@@ -2043,6 +2051,7 @@ case $choice in
 
     case $sub_choice in
       1)
+      root_use
       check_port
       install_dependency
       install_docker
@@ -2386,6 +2395,7 @@ case $choice in
 
 
       21)
+      root_use
       check_port
       install_dependency
       install_docker
@@ -2534,6 +2544,7 @@ case $choice in
 
 
     31)
+    root_use
     while true; do
         clear
         echo "LDNMP环境"
@@ -2723,7 +2734,7 @@ case $choice in
       ;;
 
     34)
-      clear
+      root_use
       cd /home/ && ls -t /home/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
       check_port
       install_dependency
@@ -2983,7 +2994,7 @@ case $choice in
 
 
     37)
-      clear
+      root_use
       docker rm -f nginx php php74 mysql redis
       docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
 
@@ -2996,7 +3007,7 @@ case $choice in
 
 
     38)
-        clear
+        root_use
         read -p "$(echo -e "${hong}强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ${bai}")" choice
         case "$choice" in
           [Yy])
@@ -4184,7 +4195,7 @@ case $choice in
       echo "------------------------"
       echo "1. 设置脚本启动快捷键"
       echo "------------------------"
-      echo "2. 修改ROOT密码"
+      echo "2. 修改登录密码"
       echo "3. ROOT密码登录模式"
       echo "4. 安装Python最新版"
       echo "5. 开放所有端口"
@@ -4229,16 +4240,16 @@ case $choice in
 
           2)
               clear
-              echo "设置你的ROOT密码"
+              echo "设置你的登录密码"
               passwd
               ;;
           3)
-              clear
+              root_use
               add_sshpasswd
               ;;
 
           4)
-            clear
+            root_use
 
             # 系统检测
             OS=$(cat /etc/os-release | grep -o -E "Debian|Ubuntu|CentOS" | head -n 1)
@@ -4317,14 +4328,14 @@ case $choice in
               ;;
 
           5)
-              clear
+              root_use
               iptables_open
               remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
               echo "端口已全部开放"
 
               ;;
           6)
-              clear
+              root_use
 
               # 去掉 #Port 的注释
               sed -i 's/#Port/Port/' /etc/ssh/sshd_config
@@ -4346,7 +4357,7 @@ case $choice in
 
 
           7)
-            clear
+            root_use
             echo "当前DNS地址"
             echo "------------------------"
             cat /etc/resolv.conf
@@ -4379,7 +4390,7 @@ case $choice in
             wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
           }
 
-          clear
+          root_use
           echo "请备份数据，将为你重装系统，预计花费15分钟。"
           echo -e "${hui}感谢MollyLau的脚本支持！${bai} "
           read -p "确定继续吗？(Y/N): " choice
@@ -4549,28 +4560,27 @@ case $choice in
               ;;
 
           9)
-            clear
-            install sudo
+            root_use
 
             # 提示用户输入新用户名
             read -p "请输入新用户名: " new_username
 
             # 创建新用户并设置密码
-            sudo useradd -m -s /bin/bash "$new_username"
-            sudo passwd "$new_username"
+            useradd -m -s /bin/bash "$new_username"
+            passwd "$new_username"
 
             # 赋予新用户sudo权限
             echo "$new_username ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
 
             # 禁用ROOT用户登录
-            sudo passwd -l root
+            passwd -l root
 
             echo "操作已完成。"
             ;;
 
 
           10)
-            clear
+            root_use
             ipv6_disabled=$(sysctl -n net.ipv6.conf.all.disable_ipv6)
 
             echo ""
@@ -4612,7 +4622,7 @@ case $choice in
           12)
 
 
-            clear
+            root_use
             # 获取当前交换空间信息
             swap_used=$(free -m | awk 'NR==3{print $3}')
             swap_total=$(free -m | awk 'NR==3{print $2}')
@@ -4647,9 +4657,8 @@ case $choice in
 
           13)
               while true; do
-                clear
-                install sudo
-                clear
+                root_use
+
                 # 显示所有用户、用户权限、用户组和是否在sudoers中
                 echo "用户列表"
                 echo "----------------------------------------------------------------------------"
@@ -4680,8 +4689,8 @@ case $choice in
                        read -p "请输入新用户名: " new_username
 
                        # 创建新用户并设置密码
-                       sudo useradd -m -s /bin/bash "$new_username"
-                       sudo passwd "$new_username"
+                       useradd -m -s /bin/bash "$new_username"
+                       passwd "$new_username"
 
                        echo "操作已完成。"
                           ;;
@@ -4691,8 +4700,8 @@ case $choice in
                        read -p "请输入新用户名: " new_username
 
                        # 创建新用户并设置密码
-                       sudo useradd -m -s /bin/bash "$new_username"
-                       sudo passwd "$new_username"
+                       useradd -m -s /bin/bash "$new_username"
+                       passwd "$new_username"
 
                        # 赋予新用户sudo权限
                        echo "$new_username ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
@@ -4708,13 +4717,13 @@ case $choice in
                       4)
                        read -p "请输入用户名: " username
                        # 从sudoers文件中移除用户的sudo权限
-                       sudo sed -i "/^$username\sALL=(ALL:ALL)\sALL/d" /etc/sudoers
+                       sed -i "/^$username\sALL=(ALL:ALL)\sALL/d" /etc/sudoers
 
                           ;;
                       5)
                        read -p "请输入要删除的用户名: " username
                        # 删除用户及其主目录
-                       sudo userdel -r "$username"
+                       userdel -r "$username"
                           ;;
 
                       0)
@@ -4780,9 +4789,9 @@ case $choice in
               ;;
 
           15)
-
+            root_use
             while true; do
-                clear
+
                 echo "系统时间信息"
 
                 # 获取当前系统时区
@@ -4844,9 +4853,10 @@ case $choice in
               ;;
 
           16)
+          root_use
           if dpkg -l | grep -q 'linux-xanmod'; then
             while true; do
-                  clear
+
                   kernel_version=$(uname -r)
                   echo "您已安装xanmod的BBRv3内核"
                   echo "当前内核版本: $kernel_version"
@@ -4970,9 +4980,9 @@ EOF
               ;;
 
           17)
+          root_use
           if dpkg -l | grep -q iptables-persistent; then
             while true; do
-                  clear
                   echo "防火墙已安装"
                   echo "------------------------"
                   iptables -L INPUT
@@ -5137,7 +5147,7 @@ EOF
               ;;
 
           18)
-          clear
+          root_use
           current_hostname=$(hostname)
           echo "当前主机名: $current_hostname"
           read -p "是否要更改主机名？(y/n): " answer
@@ -5166,7 +5176,7 @@ EOF
               ;;
 
           19)
-
+          root_use
           # 获取系统信息
           source /etc/os-release
 
@@ -5267,7 +5277,6 @@ EOF
 
           # 主菜单
           while true; do
-              clear
               case "$ID" in
                   ubuntu)
                       echo "Ubuntu 更新源切换脚本"
@@ -5424,9 +5433,8 @@ EOF
               ;;
 
           21)
-
+              root_use
               while true; do
-                  clear
                   echo "本机host解析列表"
                   echo "如果你在这里添加解析匹配，将不再使用动态解析了"
                   cat /etc/hosts
@@ -5461,6 +5469,7 @@ EOF
               ;;
 
           22)
+            root_use
             if docker inspect fail2ban &>/dev/null ; then
                 while true; do
                     clear
@@ -5554,7 +5563,7 @@ EOF
 
 
           23)
-            clear
+            root_use
             echo "当前流量使用情况，重启服务器流量计算会清零！"
             output_status
             echo "$output"
@@ -5607,8 +5616,7 @@ EOF
 
 
           24)
-
-              clear
+              root_use
               echo "ROOT私钥登录模式"
               echo "------------------------------------------------"
               echo "将会生成密钥对，更安全的方式SSH登录"
@@ -5669,7 +5677,7 @@ EOF
 
           66)
 
-              clear
+              root_use
               echo "一条龙系统调优"
               echo "------------------------------------------------"
               echo "将对以下内容进行操作与优化"
