@@ -405,11 +405,26 @@ nginx_status() {
 
 }
 
+repeat_add_yuming() {
+
+if [ -e /home/web/conf.d/$yuming.conf ]; then
+    echo -e "${huang}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！${bai}"
+    break_end
+    kejilion
+else
+    echo "当前 ${yuming} 域名可用"
+fi
+
+}
+
+
 
 add_yuming() {
       ip_address
       echo -e "先将域名解析到本机IP: ${huang}$ipv4_address  $ipv6_address${bai}"
       read -p "请输入你解析的域名: " yuming
+      repeat_add_yuming
+      
 }
 
 
@@ -729,7 +744,7 @@ install_panel() {
             else
                 clear
                 echo "安装提示"
-                echo "如果您已经安装了其他面板工具或者LDNMP建站环境，建议先卸载，再安装$panelname！"
+                echo "如果您已经安装了其他面板工具或者LDNMP建站环境，建议先卸载，再安装 $panelname！"
                 echo "会根据系统自动安装，支持Debian，Ubuntu，Centos"
                 echo "官网介绍: $panelurl "
                 echo ""
@@ -2598,7 +2613,7 @@ case $choice in
         echo ""
         echo "操作"
         echo "------------------------"
-        echo -e "1. 申请/更新域名证书               ${hui}2. 更换站点域名${bai}"
+        echo "1. 申请/更新域名证书"
         echo "3. 清理站点缓存                    4. 查看站点分析报告"
         echo "5. 查看全局配置                    6. 查看站点配置"
         echo "------------------------"
