@@ -137,7 +137,7 @@ install_add_docker() {
 
 
 install_docker() {
-    if ! command -v docker compose &>/dev/null; then
+    if ! command -v docker &>/dev/null; then
         install_add_docker
     else
         echo "Docker环境已经安装"
@@ -333,7 +333,18 @@ install_ldnmp() {
 
 
 install_certbot() {
-    install certbot epel-release
+
+    if command -v yum &>/dev/null; then
+        install epel-release certbot
+    elif command -v apt &>/dev/null; then
+        install snapd
+        snap install core
+        snap install --classic certbot
+        rm /usr/bin/certbot
+        ln -s /snap/bin/certbot /usr/bin/certbot
+    else
+        install certbot
+    fi
 
     # 切换到一个一致的目录（例如，家目录）
     cd ~ || exit
