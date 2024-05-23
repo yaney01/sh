@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="2.5.6"
+sh_v="2.5.7"
 
 huang='\033[33m'
 bai='\033[0m'
@@ -678,6 +678,19 @@ output_status() {
 
             printf("总接收: %.2f %s\n总发送: %.2f %s\n", rx_total, rx_units, tx_total, tx_units);
         }' /proc/net/dev)
+
+}
+
+
+ldnmp_install_status_one() {
+
+   if docker inspect "php" &>/dev/null; then
+    echo -e "${huang}LDNMP环境已安装。无法再次安装。可以使用37. 更新LDNMP环境${bai}"
+    break_end
+    kejilion
+   else
+    echo
+   fi
 
 }
 
@@ -2088,6 +2101,7 @@ case $choice in
     case $sub_choice in
       1)
       root_use
+      ldnmp_install_status_one
       check_port
       install_dependency
       install_docker
@@ -3107,16 +3121,19 @@ case $choice in
       echo "5. AList多存储文件列表程序              6. Ubuntu远程桌面网页版"
       echo "7. 哪吒探针VPS监控面板                  8. QB离线BT磁力下载面板"
       echo "9. Poste.io邮件服务器程序               10. RocketChat多人在线聊天系统"
+      echo "------------------------"
       echo "11. 禅道项目管理软件                    12. 青龙面板定时任务管理平台"
       echo "13. Cloudreve网盘                       14. 简单图床图片管理程序"
       echo "15. emby多媒体管理系统                  16. Speedtest测速面板"
       echo "17. AdGuardHome去广告软件               18. onlyoffice在线办公OFFICE"
       echo "19. 雷池WAF防火墙面板                   20. portainer容器管理面板"
+      echo "------------------------"
       echo "21. VScode网页版                        22. UptimeKuma监控工具"
       echo "23. Memos网页备忘录                     24. Webtop远程桌面网页版"
       echo "25. Nextcloud网盘                       26. QD-Today定时任务管理框架"
       echo "27. Dockge容器堆栈管理面板              28. LibreSpeed测速工具"
       echo "29. searxng聚合搜索站                   30. PhotoPrism私有相册系统"
+      echo "------------------------"
       echo "31. StirlingPDF工具大全                 32. drawio免费的在线图表软件"
       echo "33. Sun-Panel导航面板                   34. Pingvin-Share文件分享平台"
       echo "35. 极简朋友圈                          36. LobeChatAI聊天聚合网站"
@@ -4154,10 +4171,9 @@ case $choice in
       echo "8. 8号工作区"
       echo "9. 9号工作区"
       echo "10. 10号工作区"
+      echo "11. 自定义工作区"
       echo "------------------------"
-      echo "99. 工作区状态"
-      echo "------------------------"
-      echo "b. 卸载工作区"
+      echo "99. 工作区状态管理"
       echo "------------------------"
       echo "0. 返回主菜单"
       echo "------------------------"
@@ -4165,10 +4181,6 @@ case $choice in
 
       case $sub_choice in
 
-          b)
-              clear
-              remove tmux
-              ;;
           1)
               clear
               install tmux
@@ -4231,10 +4243,38 @@ case $choice in
               tmux_run
               ;;
 
-          99)
+          11)
               clear
               install tmux
+              clear
+              echo "当前已存在的工作区列表"
+              echo "------------------------"
               tmux list-sessions
+              echo "------------------------"
+              read -p "请输入您自定义的工作区名称，如1001 kj001 work10: " SESSION_NAME
+              tmux_run
+              ;;
+
+          99)
+              clear
+              echo "当前已存在的工作区列表"
+              echo "------------------------"
+              tmux list-sessions
+              echo "------------------------"
+              read -p "1. 删除指定工作区    0. 退出: " gongzuoqu_del
+              case "$gongzuoqu_del" in
+                1)
+                  read -p "请输入要删除的工作区名称: " gongzuoqu_name
+                  tmux kill-window -t $gongzuoqu_name
+                  ;;
+                0)
+                  break
+                  ;;
+                *)
+                  echo "无效的选择，请输入 Y 或 N。"
+                  ;;
+              esac
+
               ;;
           0)
               kejilion
