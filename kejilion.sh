@@ -51,7 +51,7 @@ install() {
 
 install_dependency() {
       clear
-      install wget socat unzip tar grep
+      install wget socat unzip tar
 }
 
 
@@ -2808,6 +2808,9 @@ case $choice in
 
     34)
       root_use
+      echo "请确认home目录中已经放置网站备份的gz压缩包，按任意键继续……"
+      read -n 1 -s -r -p ""
+      echo "开始解压……"
       cd /home/ && ls -t /home/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
       check_port
       install_dependency
@@ -4634,8 +4637,8 @@ case $choice in
                   ;;
 
                 31)
-                  dd_xitong_3
-                  bash reinstall.sh alpine
+                  dd_xitong_1
+                  bash InstallNET.sh -alpine
                   reboot
                   exit
                   ;;
