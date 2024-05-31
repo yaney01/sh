@@ -1050,7 +1050,6 @@ new_ssh_port() {
   restart_ssh
   echo "SSH 端口已修改为: $new_port"
 
-  clear
   iptables_open
   remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 
@@ -1093,8 +1092,6 @@ sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/
 rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
 restart_ssh
 echo -e "${lv}ROOT登录设置完毕！${bai}"
-server_reboot
-
 
 }
 
@@ -2556,7 +2553,7 @@ case $choice in
               echo
               ;;
           2)
-              echo "数据库备份必须是.gz结尾的压缩包。请放到/home/目录下，支持宝塔备份数据导入。"
+              echo "数据库备份必须是.gz结尾的压缩包。请放到/home/目录下，支持宝塔/1panel备份数据导入。"
               read -p "也可以输入下载链接，远程下载备份数据，直接回车将跳过远程下载： " url_download_db
 
               cd /home/
@@ -6055,6 +6052,7 @@ EOF
                   new_port=5522
                   new_ssh_port
                   echo -e "[${lv}OK${bai}] 4/9. 设置SSH端口号为${huang}5522${bai}"
+                  echo "------------------------------------------------"
                   echo -e "[${lv}OK${bai}] 5/9. 开放所有端口"
 
                   echo "------------------------------------------------"
@@ -6077,6 +6075,7 @@ EOF
                   install_add_docker
                   install wget sudo tar unzip socat btop
                   echo -e "[${lv}OK${bai}] 9/9. 安装常用工具${huang}docker wget sudo tar unzip socat btop${bai}"
+                  echo "------------------------------------------------"
                   echo -e "${lv}一条龙系统调优已完成${bai}"
 
                   ;;
