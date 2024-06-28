@@ -6077,7 +6077,7 @@ EOF
               root_use
               echo "TG-bot监控预警功能"
               echo "------------------------------------------------"
-              echo "您需要配置tg机器人API和接收预警的用户ID，即可实现本机CPU，内存，硬盘的实时监控预警"
+              echo "您需要配置tg机器人API和接收预警的用户ID，即可实现本机CPU，内存，硬盘，流量的实时监控预警"
               echo "到达阈值后会向用户发预警消息"
               read -p "确定继续吗？(Y/N): " choice
 
@@ -6095,6 +6095,7 @@ EOF
                   fi
                   tmux kill-session -t TG-check-notify > /dev/null 2>&1
                   tmux new -d -s TG-check-notify "~/TG-check-notify.sh"
+                  clear
                   echo "TG-bot预警系统已启动"
                   echo -e "${hui}你还可以将root目录中的TG-check-notify.sh预警文件放到其他机器上直接使用！${bai}"
                   ;;
