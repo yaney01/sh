@@ -28,9 +28,10 @@ fix_dpkg() {
 
 # 安装依赖包
 install_dependencies() {
-    wait_for_lock
     case $OS in
         ubuntu|debian)
+            wait_for_lock
+            fix_dpkg
             DEBIAN_FRONTEND=noninteractive apt update
             DEBIAN_FRONTEND=noninteractive apt install -y build-essential zlib1g-dev libssl-dev libpam0g-dev wget ntpdate -o Dpkg::Options::="--force-confnew"
             ;;
@@ -63,9 +64,9 @@ check_openssh_version() {
     max_version=9.7
 
     if awk -v ver="$current_version" -v min="$min_version" -v max="$max_version" 'BEGIN{if(ver>=min && ver<=max) exit 0; else exit 1}'; then
-      echo "SSH版本: $current_version  在8.5到9.7之间，需要更新。"
+      echo "SSH版本: $current_version  在8.5到9.7之间，需要修复。"
     else
-      echo "SSH版本: $current_version  不在8.5到9.7之间，无需更新。"
+      echo "SSH版本: $current_version  不在8.5到9.7之间，无需修复。"
       exit 1
     fi
 
@@ -126,12 +127,9 @@ clean_up() {
 
 # 主函数
 main() {
-    if [[ $OS == "ubuntu" || $OS == "debian" ]]; then
-        fix_dpkg
-    fi
     check_openssh_version
     install_dependencies
-    sync_time
+    # sync_time
     install_openssh
     restart_ssh
     set_path_priority
