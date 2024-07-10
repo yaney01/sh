@@ -1386,114 +1386,133 @@ dd_xitong() {
               1)
                 dd_xitong_1
                 bash InstallNET.sh -debian 12
+                send_stats "重装debian 12"
                 reboot
                 exit
                 ;;
               2)
                 dd_xitong_1
                 bash InstallNET.sh -debian 11
+                send_stats "重装debian 11"
                 reboot
                 exit
                 ;;
               3)
                 dd_xitong_1
                 bash InstallNET.sh -debian 10
+                send_stats "重装debian 10"
                 reboot
                 exit
                 ;;
               4)
                 dd_xitong_1
                 bash InstallNET.sh -debian 9
+                send_stats "重装debian 9"
                 reboot
                 exit
                 ;;
               11)
                 dd_xitong_1
                 bash InstallNET.sh -ubuntu 24.04
+                send_stats "重装ubuntu 24.04"
                 reboot
                 exit
                 ;;
               12)
                 dd_xitong_1
                 bash InstallNET.sh -ubuntu 22.04
+                send_stats "重装ubuntu 22.04"
                 reboot
                 exit
                 ;;
               13)
                 dd_xitong_1
                 bash InstallNET.sh -ubuntu 20.04
+                send_stats "重装ubuntu 20.04"
                 reboot
                 exit
                 ;;
               14)
                 dd_xitong_1
                 bash InstallNET.sh -ubuntu 18.04
+                send_stats "重装ubuntu 18.04"
                 reboot
                 exit
                 ;;
               21)
                 dd_xitong_3
                 bash reinstall.sh centos 9
+                send_stats "重装centos 9"
                 reboot
                 exit
                 ;;
               22)
                 dd_xitong_3
                 bash reinstall.sh centos 8
+                send_stats "重装centos 8"
                 reboot
                 exit
                 ;;
               23)
                 dd_xitong_3
                 bash reinstall.sh centos 7
+                send_stats "重装centos 7"
                 reboot
                 exit
                 ;;
               31)
                 dd_xitong_1
                 bash InstallNET.sh -alpine
+                send_stats "重装alpine"
                 reboot
                 exit
                 ;;
               32)
                 dd_xitong_1
                 bash InstallNET.sh -rockylinux
+                send_stats "重装rockylinux"
                 reboot
                 exit
                 ;;
               33)
                 dd_xitong_3
                 bash reinstall.sh alma
+                send_stats "重装alma"
                 reboot
                 exit
                 ;;
               34)
                 dd_xitong_3
                 bash reinstall.sh fedora
+                send_stats "重装fedora"
                 reboot
                 exit
                 ;;
               35)
                 dd_xitong_3
                 bash reinstall.sh kali
+                send_stats "重装kali"
                 reboot
                 exit
                 ;;
               36)
                 dd_xitong_3
                 bash reinstall.sh arch
+                send_stats "重装arch"
                 reboot
                 exit
                 ;;
               41)
                 dd_xitong_2
                 bash InstallNET.sh -windows 11 -lang "cn"
+                send_stats "重装windows11"
                 reboot
                 exit
                 ;;
               42)
                 dd_xitong_2
                 bash InstallNET.sh -windows 10 -lang "cn"
+                send_stats "重装windows10"
                 reboot
                 exit
                 ;;
@@ -1505,6 +1524,7 @@ dd_xitong() {
                 # bash reinstall.sh windows --image-name 'Windows 7 Professional' --lang zh-cn
                 # bash reinstall.sh windows --iso='$iso_link' --image-name='Windows 7 PROFESSIONAL'
                 bash reinstall.sh windows --iso="$iso_link" --image-name='Windows 7 PROFESSIONAL'
+                send_stats "重装windows7"
                 reboot
                 exit
                 ;;
@@ -1514,18 +1534,21 @@ dd_xitong() {
                 web_content=$(wget -q -O - "$URL")
                 iso_link=$(echo "$web_content" | grep -oP '(?<=href=")[^"]*cn[^"]*windows_server[^"]*2022[^"]*x64[^"]*\.iso')
                 bash reinstall.sh windows --iso="$iso_link" --image-name='Windows Server 2022 SERVERDATACENTER'
+                send_stats "重装windows server 22"
                 reboot
                 exit
                 ;;
               45)
                 dd_xitong_2
                 bash InstallNET.sh -windows 2019 -lang "cn"
+                send_stats "重装windows server 19"
                 reboot
                 exit
                 ;;
               46)
                 dd_xitong_2
                 bash InstallNET.sh -windows 2016 -lang "cn"
+                send_stats "重装windows server 16"
                 reboot
                 exit
                 ;;
@@ -1686,7 +1709,7 @@ echo "|_/  |___  | | |    | |  | |\ | "
 echo "| \_ |___ _| | |___ | |__| | \| "
 echo "                                "
 echo -e "${kjlan}科技lion脚本工具箱 v$sh_v 只为更简单的Linux的使用！"
-echo -e "设配Ubuntu/Debian/CentOS/Alpine/Kali/Arch/RedHat/Fedora/Alma/Rocky系统"
+echo -e "适配Ubuntu/Debian/CentOS/Alpine/Kali/Arch/RedHat/Fedora/Alma/Rocky系统"
 echo -e "-输入${huang}k${kjlan}可快速启动此脚本-${bai}"
 echo "------------------------"
 echo "1. 系统信息查询"
@@ -5257,7 +5280,7 @@ case $choice in
       echo "------------------------"
       echo "21. 本机host解析                       22. fail2banSSH防御程序"
       echo "23. 限流自动关机                       24. ROOT私钥登录模式"
-      echo "25. TG-bot系统监控预警                 26. 修复OoenSSH高危漏洞（岫源）"
+      echo "25. TG-bot系统监控预警                 26. 修复OpenSSH高危漏洞（岫源）"
       echo "------------------------"
       echo "31. 留言板                             66. 一条龙系统调优"
       echo "------------------------"
