@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="2.6.11"
+sh_v="2.7.0"
 
 huang='\033[33m'
 bai='\033[0m'
@@ -25,7 +25,7 @@ CheckFirstRun_true() {
 CheckFirstRun_true
 
 
-# 收集功能埋点信息的函数，记录当前脚本版本号，使用时间，系统版本，国家和用户使用的功能名称，绝对不涉及任何敏感信息，请放心！请相信我！
+# 收集功能埋点信息的函数，记录当前脚本版本号，使用时间，系统版本，CPU架构，机器所在国家和用户使用的功能名称，绝对不涉及任何敏感信息，请放心！请相信我！
 # 为什么要设计这个功能，目的更好的了解用户喜欢使用的功能，进一步优化功能推出更多符合用户需求的功能。
 # 全文可搜搜 send_stats 函数调用位置，透明开源，如有顾虑可拒绝使用。
 
@@ -42,11 +42,11 @@ send_stats() {
 
     country=$(curl -s ipinfo.io/country)
     os_info=$(grep PRETTY_NAME /etc/os-release | cut -d '=' -f2 | tr -d '"')
+    cpu_arch=$(uname -m)
     curl -s -X POST "https://api.kejilion.pro/api/log" \
          -H "Content-Type: application/json" \
-         -d "{\"action\":\"$1\",\"timestamp\":\"$(date -u '+%Y-%m-%d %H:%M:%S')\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"version\":\"$sh_v\"}" &>/dev/null &
+         -d "{\"action\":\"$1\",\"timestamp\":\"$(date -u '+%Y-%m-%d %H:%M:%S')\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\",\"version\":\"$sh_v\"}" &>/dev/null &
 }
-
 
 
 yinsiyuanquan1() {
@@ -289,7 +289,7 @@ check_port() {
             echo ""
         else
             clear
-            echo -e "${hong}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！${bai}"
+            echo -e "${hong}注意：${bai}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！"
             echo "$result"
             break_end
             kejilion
@@ -661,7 +661,7 @@ nginx_status() {
         dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
         docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $dbname;" 2> /dev/null
 
-        echo -e "${hong}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！${bai}"
+        echo -e "${hong}注意：${bai}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！"
     fi
 
 }
@@ -670,19 +670,19 @@ repeat_add_yuming() {
 
 domain_regex="^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
 if [[ $yuming =~ $domain_regex ]]; then
-  echo "域名格式正确"
+  :
 else
-  echo "域名格式不正确，请重新输入"
+  echo -e "${huang}注意：${bai}域名格式不正确，请重新输入"
   break_end
   kejilion
 fi
 
 if [ -e /home/web/conf.d/$yuming.conf ]; then
-    echo -e "${huang}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！${bai}"
+    echo -e "${huang}注意：${bai}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！"
     break_end
     kejilion
 else
-    echo "当前 ${yuming} 域名可用"
+    :
 fi
 
 }
@@ -930,7 +930,7 @@ f2b_sshd() {
 
 server_reboot() {
 
-    read -p "$(echo -e "${huang}现在重启服务器吗？(Y/N): ${bai}")" rboot
+    read -p "$(echo -e "${huang}提示：${bai}现在重启服务器吗？(Y/N): ")" rboot
     case "$rboot" in
       [Yy])
         echo "已重启"
@@ -1301,7 +1301,7 @@ echo -e "${lv}ROOT登录设置完毕！${bai}"
 
 root_use() {
 clear
-[ "$EUID" -ne 0 ] && echo -e "${huang}请注意，该功能需要root用户才能运行！${bai}" && break_end && kejilion
+[ "$EUID" -ne 0 ] && echo -e "${huang}注意：${bai}该功能需要root用户才能运行！" && break_end && kejilion
 }
 
 
@@ -1719,15 +1719,10 @@ case $choice in
 
     ip_address
 
-    if [ "$(uname -m)" == "x86_64" ]; then
-      cpu_info=$(cat /proc/cpuinfo | grep 'model name' | uniq | sed -e 's/model name[[:space:]]*: //')
-    else
-      cpu_info=$(lscpu | grep 'BIOS Model name' | awk -F': ' '{print $2}' | sed 's/^[ \t]*//')
-    fi
+    cpu_info=$(lscpu | awk -F': +' '/Model name:/ {print $2; exit}')
 
     cpu_usage_percent=$(awk '{u=$2+$4; t=$2+$4+$5; if (NR==1){u1=u; t1=t;} else printf "%.0f\n", (($2+$4-u1) * 100 / (t-t1))}' \
         <(grep 'cpu ' /proc/stat) <(sleep 1; grep 'cpu ' /proc/stat))
-
 
     cpu_cores=$(nproc)
 
@@ -1735,10 +1730,11 @@ case $choice in
 
     disk_info=$(df -h | awk '$NF=="/"{printf "%s/%s (%s)", $3, $2, $5}')
 
-    country=$(curl -s ipinfo.io/country)
-    city=$(curl -s ipinfo.io/city)
+    ipinfo=$(curl -s ipinfo.io)
+    country=$(echo "$ipinfo" | grep 'country' | awk -F': ' '{print $2}' | tr -d '",')
+    city=$(echo "$ipinfo" | grep 'city' | awk -F': ' '{print $2}' | tr -d '",')
+    isp_info=$(echo "$ipinfo" | grep 'org' | awk -F': ' '{print $2}' | tr -d '",')
 
-    isp_info=$(curl -s ipinfo.io/org)
 
     cpu_arch=$(uname -m)
 
@@ -1757,14 +1753,8 @@ case $choice in
     current_time=$(date "+%Y-%m-%d %I:%M %p")
 
 
-    swap_used=$(free -m | awk 'NR==3{print $3}')
-    swap_total=$(free -m | awk 'NR==3{print $2}')
+    swap_info=$(free -m | awk 'NR==3{used=$3; total=$2; if (total == 0) {percentage=0} else {percentage=used*100/total}; printf "%dMB/%dMB (%d%%)", used, total, percentage}')
 
-    if [ "$swap_total" -eq 0 ]; then
-        swap_percentage=0
-    else
-        swap_percentage=$((swap_used * 100 / swap_total))
-    fi
 
     swap_info="${swap_used}MB/${swap_total}MB (${swap_percentage}%)"
 
@@ -2077,7 +2067,7 @@ case $choice in
   6)
     while true; do
       clear
-      send_stats "docker管理"
+      # send_stats "docker管理"
       echo "▶ Docker管理器"
       echo "------------------------"
       echo "1. 安装更新Docker环境"
@@ -2183,7 +2173,7 @@ case $choice in
                           docker stop $(docker ps -q)
                           ;;
                       8)
-                          read -p "$(echo -e "${hong}确定删除所有容器吗？(Y/N): ${bai}")" choice
+                          read -p "$(echo -e "${hong}注意：${bai}确定删除所有容器吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rm -f $(docker ps -a -q)
@@ -2272,7 +2262,7 @@ case $choice in
                           docker rmi -f $dockername
                           ;;
                       4)
-                          read -p "$(echo -e "${hong}确定删除所有镜像吗？(Y/N): ${bai}")" choice
+                          read -p "$(echo -e "${hong}注意：${bai}确定删除所有镜像吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rmi -f $(docker images -q)
@@ -2408,7 +2398,7 @@ case $choice in
           7)
               clear
               send_stats "Docker清理"
-              read -p "$(echo -e "${huang}确定清理无用的镜像容器网络吗？(Y/N): ${bai}")" choice
+              read -p "$(echo -e "${huang}注意：${bai}将清理无用的镜像容器网络，包括停止的容器，确定清理吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker system prune -af --volumes
@@ -2448,7 +2438,7 @@ case $choice in
           20)
               clear
               send_stats "Docker卸载"
-              read -p "$(echo -e "${hong}确定卸载docker环境吗？(Y/N): ${bai}")" choice
+              read -p "$(echo -e "${hong}注意：${bai}确定卸载docker环境吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
@@ -2488,7 +2478,7 @@ case $choice in
   8)
     while true; do
       clear
-      send_stats "测试脚本合集"
+      # send_stats "测试脚本合集"
       echo "▶ 测试脚本合集"
       echo ""
       echo "----IP及解锁状态检测-----------"
@@ -2757,7 +2747,7 @@ case $choice in
 
   while true; do
     clear
-    send_stats "LDNMP建站"
+    # send_stats "LDNMP建站"
     echo -e "${huang}▶ LDNMP建站${bai}"
     echo  "------------------------"
     echo  "1. 安装LDNMP环境"
@@ -3887,21 +3877,30 @@ case $choice in
     37)
       root_use
       send_stats "更新LDNMP环境"
-      docker rm -f nginx php php74 mysql redis
-      docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
 
-      check_port
-      install_dependency
-      install_docker
-      install_ldnmp
+        read -p "$(echo -e "${huang}注意：${bai}长时间不更新环境的用户，请慎重更新LDNMP环境，会有数据库更新失败的风险。确定更新LDNMP环境吗？(Y/N): ")" choice
+        case "$choice" in
+          [Yy])
+            docker rm -f nginx php php74 mysql redis
+            docker rmi nginx nginx:alpine php:fpm php:fpm-alpine php:7.4.33-fpm php:7.4-fpm-alpine mysql redis redis:alpine
+
+            check_port
+            install_dependency
+            install_docker
+            install_ldnmp
+            ;;
+          [Nn])
+            ;;
+          *)
+            echo "无效的选择，请输入 Y 或 N。"
+            ;;
+        esac
       ;;
-
-
 
     38)
         root_use
         send_stats "卸载LDNMP环境"
-        read -p "$(echo -e "${hong}强烈建议先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ${bai}")" choice
+        read -p "$(echo -e "${hong}强烈建议：${bai}先备份全部网站数据，再卸载LDNMP环境。确定删除所有网站数据吗？(Y/N): ")" choice
         case "$choice" in
           [Yy])
             docker rm -f nginx php php74 mysql redis
@@ -3933,7 +3932,7 @@ case $choice in
   11)
     while true; do
       clear
-      send_stats "面板工具"
+      # send_stats "面板工具"
       echo "▶ 面板工具"
       echo "------------------------"
       echo "1. 宝塔面板官方版                       2. aaPanel宝塔国际版"
@@ -5018,7 +5017,7 @@ case $choice in
       echo "▶ 我的工作区"
       echo "系统将为你提供可以后台常驻运行的工作区，你可以用来执行长时间的任务"
       echo "即使你断开SSH，工作区中的任务也不会中断，后台常驻任务。"
-      echo -e "${huang}注意: 进入工作区后使用Ctrl+b再单独按d，退出工作区！${bai}"
+      echo -e "${huang}注意：${bai}进入工作区后使用Ctrl+b再单独按d，退出工作区！"
       echo "------------------------"
       echo "1. 1号工作区"
       echo "2. 2号工作区"
@@ -5153,7 +5152,7 @@ case $choice in
   13)
     while true; do
       clear
-      send_stats "系统工具"
+      # send_stats "系统工具"
       echo "▶ 系统工具"
       echo "------------------------"
       echo "1. 设置脚本启动快捷键                  2. 修改登录密码"
