@@ -134,9 +134,9 @@ install() {
         if ! command -v "$package" &>/dev/null; then
             echo "正在安装 $package..."
             if command -v dnf &>/dev/null; then
-                dnf -y update && dnf install -y "$package"
+                dnf -y update && dnf install -y epel-release && dnf install -y "$package"
             elif command -v yum &>/dev/null; then
-                yum -y update && yum -y epel-release && yum -y install "$package"
+                yum -y update && yum install -y epel-release && yum -y install "$package"
             elif command -v apt &>/dev/null; then
                 apt update -y && apt install -y "$package"
             elif command -v apk &>/dev/null; then
@@ -1017,7 +1017,7 @@ f2b_install_sshd() {
         curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd-ddos.conf
         cd /path/to/fail2ban/config/fail2ban/jail.d/
         curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-ssh.conf
-    elif grep -qi 'CentOS' /etc/redhat-release; then
+    elif command -v dnf &>/dev/null; then
         cd /path/to/fail2ban/config/fail2ban/jail.d/
         curl -sS -O https://raw.githubusercontent.com/kejilion/config/main/fail2ban/centos-ssh.conf
     else
@@ -1240,6 +1240,18 @@ set_timedate() {
 }
 
 
+wait_for_lock() {
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+        echo "等待dpkg锁释放..."
+        sleep 1
+    done
+}
+
+# 修复dpkg中断问题
+fix_dpkg() {
+    DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+}
+
 
 
 linux_update() {
@@ -1248,6 +1260,8 @@ linux_update() {
     elif command -v yum &>/dev/null; then
         yum -y update
     elif command -v apt &>/dev/null; then
+        wait_for_lock
+        fix_dpkg
         DEBIAN_FRONTEND=noninteractive apt update -y
         DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
     elif command -v apk &>/dev/null; then
@@ -1261,11 +1275,11 @@ linux_update() {
 }
 
 
-
 linux_clean() {
     if command -v dnf &>/dev/null; then
         dnf autoremove -y
         dnf clean all
+        dnf makecache
         journalctl --rotate
         journalctl --vacuum-time=1s
         journalctl --vacuum-size=50M
@@ -1274,12 +1288,15 @@ linux_clean() {
     elif command -v yum &>/dev/null; then
         yum autoremove -y
         yum clean all
+        yum makecache
         journalctl --rotate
         journalctl --vacuum-time=1s
         journalctl --vacuum-size=50M
         yum remove $(rpm -q kernel | grep -v $(uname -r)) -y
 
     elif command -v apt &>/dev/null; then
+        wait_for_lock
+        fix_dpkg
         apt autoremove --purge -y
         apt clean -y
         apt autoclean -y
@@ -2148,28 +2165,28 @@ case $choice in
               clear
               install sl
               clear
-              /usr/games/sl
+              sl
               send_stats "安装sl"
               ;;
             26)
               clear
               install bastet
               clear
-              /usr/games/bastet
+              bastet
               send_stats "安装bastet"
               ;;
             27)
               clear
               install nsnake
               clear
-              /usr/games/nsnake
+              nsnake
               send_stats "安装nsnake"
               ;;
             28)
               clear
               install ninvaders
               clear
-              /usr/games/ninvaders
+              ninvaders
               send_stats "安装ninvaders"
 
               ;;
@@ -6549,8 +6566,10 @@ EOF
             # 检查是否存在 Limiting_Shut_down.sh 文件
             if [ -f ~/Limiting_Shut_down.sh ]; then
                 # 获取 threshold_gb 的值
-                threshold_gb=$(grep -oP 'threshold_gb=\K\d+' ~/Limiting_Shut_down.sh)
-                echo -e "当前设置的限流阈值为 ${hang}${threshold_gb}${bai}GB"
+                rx_threshold_gb=$(grep -oP 'rx_threshold_gb=\K\d+' ~/Limiting_Shut_down.sh)
+                tx_threshold_gb=$(grep -oP 'tx_threshold_gb=\K\d+' ~/Limiting_Shut_down.sh)
+                echo -e "当前设置的进站限流阈值为 ${hang}${rx_threshold_gb}${bai}GB"
+                echo -e "当前设置的出站限流阈值为 ${hang}${tx_threshold_gb}${bai}GB"
             else
                 echo -e "${hui}前未启用限流关机功能${bai}"
             fi
@@ -6565,7 +6584,7 @@ EOF
                 # 输入新的虚拟内存大小
                 echo "如果实际服务器就100G流量，可设置阈值为95G，提前关机，以免出现流量误差或溢出."
                 read -p "请输入进站流量阈值（单位为GB）: " rx_threshold_gb
-                read -p "请输入出站流量阈值（单位为GB）: " rx_threshold_gb
+                read -p "请输入出站流量阈值（单位为GB）: " tx_threshold_gb
                 cd ~
                 curl -Ss -o ~/Limiting_Shut_down.sh https://raw.githubusercontent.com/kejilion/sh/main/Limiting_Shut_down1.sh
                 chmod +x ~/Limiting_Shut_down.sh
