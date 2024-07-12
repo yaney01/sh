@@ -302,11 +302,34 @@ check_port() {
 
 
 
+install_add_docker_guanfang() {
+country=$(curl -s ipinfo.io/country)
+if [ "$country" = "CN" ]; then
+    cd ~
+    curl -sS -O https://raw.gitmirror.com/kejilion/docker/main/install && chmod +x install
+    sh install --mirror Aliyun
+    rm -f install
+    cat > /etc/docker/daemon.json << EOF
+{
+    "registry-mirrors": ["https://docker.kejilion.pro"]
+}
+EOF
+
+else
+    curl -fsSL https://get.docker.com | sh
+fi
+k enable docker
+k start docker
+
+}
+
 
 
 install_add_docker() {
 
-    if command -v dnf &>/dev/null; then
+    if  [ -f /etc/os-release ] && grep -q "Fedora" /etc/os-release; then
+        install_add_docker_guanfang
+    elif command -v dnf &>/dev/null; then
         dnf update -y
         dnf install -y yum-utils device-mapper-persistent-data lvm2
         rm -f /etc/yum.repos.d/docker*.repo > /dev/null
@@ -367,22 +390,7 @@ install_add_docker() {
         k start docker
 
     elif command -v apt &>/dev/null || command -v yum &>/dev/null; then
-        country=$(curl -s ipinfo.io/country)
-        if [ "$country" = "CN" ]; then
-            cd ~
-            curl -sS -O https://raw.gitmirror.com/kejilion/docker/main/install && chmod +x install
-            sh install --mirror Aliyun
-            rm -f install
-            cat > /etc/docker/daemon.json << EOF
-{
-    "registry-mirrors": ["https://docker.kejilion.pro"]
-}
-EOF
-        else
-            curl -fsSL https://get.docker.com | sh
-        fi
-        k enable docker
-        k start docker
+        install_add_docker_guanfang
     else
         k install docker docker-compose
         k enable docker
@@ -1033,7 +1041,7 @@ f2b_sshd() {
     if grep -q 'Alpine' /etc/issue; then
         xxx=alpine-sshd
         f2b_status_xxx
-    elif grep -qi 'CentOS' /etc/redhat-release; then
+    elif command -v dnf &>/dev/null; then
         xxx=centos-sshd
         f2b_status_xxx
     else
@@ -1193,7 +1201,7 @@ install_panel() {
                         if grep -q 'Alpine' /etc/issue; then
                             $ubuntu_mingling
                             $ubuntu_mingling2
-                        elif grep -qi 'CentOS' /etc/redhat-release; then
+                        elif command -v dnf &>/dev/null; then
                             $centos_mingling
                             $centos_mingling2
                         elif grep -qi 'Ubuntu' /etc/os-release; then
@@ -1508,6 +1516,7 @@ dd_xitong() {
             echo "23. Alma Linux 9              24. Alma Linux 8"
             echo "25. oracle Linux 9            26. oracle Linux 8"
             echo "27. Fedora Linux 40           28. Fedora Linux 39"
+            echo "29. CentOS 7"
             echo "------------------------"
             echo "31. Alpine Linux              32. Arch Linux"
             echo "33. Kali Linux                34. openEuler"
@@ -1638,6 +1647,14 @@ dd_xitong() {
                 send_stats "重装fedora39"
                 dd_xitong_3
                 bash reinstall.sh fedora 39
+                reboot
+                exit
+                ;;
+
+              29)
+                send_stats "重装centos 7"
+                dd_xitong_3
+                bash reinstall.sh centos 7
                 reboot
                 exit
                 ;;
@@ -6176,7 +6193,7 @@ EOF
               debian)
                   initial_debian_source=$(grep -E '^deb ' /etc/apt/sources.list | head -n 1 | awk '{print $2}')
                   ;;
-              centos)
+              centos|rhel|almalinux|rocky|fedora)
                   initial_centos_source=$(awk -F= '/^baseurl=/ {print $2}' /etc/yum.repos.d/CentOS-Base.repo | head -n 1 | tr -d ' ')
                   ;;
               *)
@@ -6194,7 +6211,7 @@ EOF
                   debian)
                       cp /etc/apt/sources.list /etc/apt/sources.list.bak
                       ;;
-                  centos)
+                  centos|rhel|almalinux|rocky|fedora)
                       if [ ! -f /etc/yum.repos.d/CentOS-Base.repo.bak ]; then
                           cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
                       else
@@ -6218,7 +6235,7 @@ EOF
                   debian)
                       cp /etc/apt/sources.list.bak /etc/apt/sources.list
                       ;;
-                  centos)
+                  centos|rhel|almalinux|rocky|fedora)
                       cp /etc/yum.repos.d/CentOS-Base.repo.bak /etc/yum.repos.d/CentOS-Base.repo
                       ;;
                   *)
@@ -6238,7 +6255,7 @@ EOF
                   debian)
                       sed -i 's|'"$initial_debian_source"'|'"$1"'|g' /etc/apt/sources.list
                       ;;
-                  centos)
+                  centos|rhel|almalinux|rocky|fedora)
                       sed -i "s|^baseurl=.*$|baseurl=$1|g" /etc/yum.repos.d/CentOS-Base.repo
                       ;;
                   *)
@@ -6259,7 +6276,7 @@ EOF
                       echo "Debian 更新源切换脚本"
                       echo "------------------------"
                       ;;
-                  centos)
+                  centos|rhel|almalinux|rocky|fedora)
                       echo "CentOS 更新源切换脚本"
                       echo "------------------------"
                       ;;
@@ -6289,7 +6306,7 @@ EOF
                           debian)
                               switch_source $aliyun_debian_source
                               ;;
-                          centos)
+                          centos|rhel|almalinux|rocky|fedora)
                               switch_source $aliyun_centos_source
                               ;;
                           *)
@@ -6308,7 +6325,7 @@ EOF
                           debian)
                               switch_source $official_debian_source
                               ;;
-                          centos)
+                          centos|rhel|almalinux|rocky|fedora)
                               switch_source $official_centos_source
                               ;;
                           *)
@@ -6327,7 +6344,7 @@ EOF
                           debian)
                               switch_source $initial_debian_source
                               ;;
-                          centos)
+                          centos|rhel|almalinux|rocky|fedora)
                               switch_source $initial_centos_source
                               ;;
                           *)
