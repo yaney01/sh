@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="2.7.9"
+sh_v="2.7.10"
 
 huang='\033[33m'
 bai='\033[0m'
@@ -64,13 +64,9 @@ fi
 
 yinsiyuanquan2() {
 
-if grep -q '^ENABLE_STATS="true"' /usr/local/bin/k > /dev/null 2>&1; then
-    :
-elif grep -q '^ENABLE_STATS="false"' /usr/local/bin/k > /dev/null 2>&1; then
+if grep -q '^ENABLE_STATS="false"' /usr/local/bin/k > /dev/null 2>&1; then
     sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ./kejilion.sh
     sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' /usr/local/bin/k
-else
-    :
 fi
 
 }
@@ -104,9 +100,8 @@ UserLicenseAgreement() {
         sed -i 's/^permission_granted="false"/permission_granted="true"/' ~/kejilion.sh
         sed -i 's/^permission_granted="false"/permission_granted="true"/' /usr/local/bin/k
     else
-        clear
         send_stats "许可拒绝"
-        echo "您未同意条款，脚本退出。"
+        clear
         exit 1
     fi
 }
@@ -134,15 +129,22 @@ install() {
         if ! command -v "$package" &>/dev/null; then
             echo "正在安装 $package..."
             if command -v dnf &>/dev/null; then
-                dnf -y update && dnf install -y epel-release && dnf install -y "$package"
+                dnf -y update
+                dnf install -y epel-release
+                dnf install -y "$package"
             elif command -v yum &>/dev/null; then
-                yum -y update && yum install -y epel-release && yum -y install "$package"
+                yum -y update
+                yum install -y epel-release
+                yum -y install "$package"
             elif command -v apt &>/dev/null; then
-                apt update -y && apt install -y "$package"
+                apt update -y
+                apt install -y "$package"
             elif command -v apk &>/dev/null; then
-                apk update && apk add "$package"
+                apk update
+                apk add "$package"
             elif command -v pacman &>/dev/null; then
-                pacman -Syu --noconfirm && pacman -S --noconfirm "$package"
+                pacman -Syu --noconfirm
+                pacman -S --noconfirm "$package"
             else
                 echo "未知的包管理器!"
                 return 1
@@ -286,7 +288,7 @@ check_port() {
 
         # 判断是否是Nginx容器占用端口
         if [ -n "$is_nginx_container" ]; then
-            echo ""
+            :
         else
             clear
             echo -e "${hong}注意：${bai}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！"
@@ -295,8 +297,6 @@ check_port() {
             kejilion
 
         fi
-    else
-        echo ""
     fi
 }
 
@@ -701,7 +701,7 @@ install_certbot() {
     cd ~
 
     # 下载并使脚本可执行
-    curl -O https://raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
+    curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
     chmod +x auto_cert_renewal.sh
 
     # 设置定时任务字符串
@@ -715,8 +715,6 @@ install_certbot() {
     if [ -z "$existing_cron" ]; then
         (crontab -l 2>/dev/null; echo "$cron_job") | crontab -
         echo "续签任务已添加"
-    else
-        echo "续签任务已存在，无需添加"
     fi
 }
 
@@ -765,12 +763,7 @@ install_ssltls_text() {
 add_ssl() {
 
 add_yuming
-
-if ! command -v certbot &> /dev/null
-then
-    install_certbot
-fi
-
+install_certbot
 install_ssltls
 install_ssltls_text
 ssl_ps
@@ -796,21 +789,8 @@ ssl_ps() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 default_server_ssl() {
 install openssl
-# openssl req -x509 -nodes -newkey rsa:2048 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
 
 if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
     openssl req -x509 -nodes -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -keyout /home/web/certs/default_server.key -out /home/web/certs/default_server.crt -days 5475 -subj "/C=US/ST=State/L=City/O=Organization/OU=Organizational Unit/CN=Common Name"
@@ -868,8 +848,6 @@ if [ -e /home/web/conf.d/$yuming.conf ]; then
     echo -e "${huang}注意：${bai}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！"
     break_end
     kejilion
-else
-    :
 fi
 
 }
@@ -4510,7 +4488,9 @@ case $choice in
             check_port
             install_dependency
             install_docker
+            install_certbot
             install_ldnmp
+
             ;;
           [Nn])
             ;;
