@@ -290,7 +290,7 @@ check_port() {
     # 判断结果并输出相应信息
     if [ -n "$result" ]; then
             clear
-            echo -e "${hong}注意：${bai}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！"
+            echo -e "${hong}注意: ${bai}端口 ${huang}$PORT${bai} 已被占用，无法安装环境，卸载以下程序后重试！"
             echo "$result"
             send_stats "端口冲突无法安装LDNMP环境"
             break_end
@@ -831,7 +831,7 @@ certs_status() {
         :
     else
         send_stats "域名申请失败"
-        echo -e "${hong}注意：${bai}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！"
+        echo -e "${hong}注意: ${bai}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！"
         break_end
         linux_ldnmp
     fi
@@ -845,14 +845,14 @@ if [[ $yuming =~ $domain_regex ]]; then
   :
 else
   send_stats "域名格式不正确"
-  echo -e "${huang}注意：${bai}域名格式不正确，请重新输入"
+  echo -e "${huang}提示: ${bai}域名格式不正确，请重新输入"
   break_end
   linux_ldnmp
 fi
 
 if [ -e /home/web/conf.d/$yuming.conf ]; then
   send_stats "域名重复使用"
-  echo -e "${huang}注意：${bai}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！"
+  echo -e "${huang}提示: ${bai}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！"
   break_end
   linux_ldnmp
 fi
@@ -1125,7 +1125,7 @@ f2b_sshd() {
 
 server_reboot() {
 
-    read -p "$(echo -e "${huang}提示：${bai}现在重启服务器吗？(Y/N): ")" rboot
+    read -p "$(echo -e "${huang}提示: ${bai}现在重启服务器吗？(Y/N): ")" rboot
     case "$rboot" in
       [Yy])
         echo "已重启"
@@ -1198,7 +1198,7 @@ ldnmp_install_status() {
     echo "LDNMP环境已安装，开始部署 $webname"
    else
     send_stats "请先安装LDNMP环境"
-    echo -e "${huang}LDNMP环境未安装，请先安装LDNMP环境，再部署网站${bai}"
+    echo -e "${huang}提示: ${bai}LDNMP环境未安装，请先安装LDNMP环境，再部署网站"
     break_end
     linux_ldnmp
 
@@ -1213,7 +1213,7 @@ nginx_install_status() {
     echo "nginx环境已安装，开始部署 $webname"
    else
     send_stats "请先安装nginx环境"
-    echo -e "${huang}nginx未安装，请先安装nginx环境，再部署网站${bai}"
+    echo -e "${huang}提示: ${bai}nginx未安装，请先安装nginx环境，再部署网站"
     break_end
     linux_ldnmp
 
@@ -1535,7 +1535,7 @@ echo -e "${lv}ROOT登录设置完毕！${bai}"
 
 root_use() {
 clear
-[ "$EUID" -ne 0 ] && echo -e "${huang}注意：${bai}该功能需要root用户才能运行！" && break_end && kejilion
+[ "$EUID" -ne 0 ] && echo -e "${huang}提示: ${bai}该功能需要root用户才能运行！" && break_end && kejilion
 }
 
 
@@ -1543,23 +1543,12 @@ clear
 dd_xitong() {
         send_stats "重装系统"
         dd_xitong_MollyLau() {
-          country=$(curl -s ipinfo.io/country)
-          if [ "$country" = "CN" ]; then
-              wget --no-check-certificate -qO InstallNET.sh 'https://gitee.com/mb9e8j2/Tools/raw/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
-          else
-              wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
-          fi
+            wget --no-check-certificate -qO InstallNET.sh 'https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
         }
 
         dd_xitong_bin456789() {
-          country=$(curl -s ipinfo.io/country)
-          if [ "$country" = "CN" ]; then
-              curl -O https://mirror.ghproxy.com/https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
-          else
-              curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
-          fi
+            curl -O https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
         }
-
 
         dd_xitong_1() {
           echo -e "重装后初始用户名: ${huang}root${bai}  初始密码: ${huang}LeitboGi0ro${bai}  初始端口: ${huang}22${bai}"
@@ -2126,8 +2115,8 @@ clamav_scan() {
         clamav/clamav:latest \
         clamscan -r --log=/var/log/clamav/scan.log $SCAN_PARAMS
 
-    echo -e "${lv}$@ 扫描完成，病毒报告存放在${huang}/home/docker/clamav/log/scan.log ${bai}"
-
+    echo -e "${lv}$@ 扫描完成，病毒报告存放在${huang}/home/docker/clamav/log/scan.log 如果有病毒请搜索FOUND关键字 ${bai}"
+    echo -e "${lv}如果有病毒请在${huang}scan.log${lv}文件中搜索FOUND关键字确认病毒位置 ${bai}"
 
 }
 
@@ -2146,7 +2135,7 @@ clamav() {
                 echo "------------------------"
                 echo "是一个开源的防病毒软件工具，主要用于检测和删除各种类型的恶意软件。"
                 echo "包括病毒、特洛伊木马、间谍软件、恶意脚本和其他有害软件。"
-                echo -e "${huang}注意:${bai} 目前该工具仅支持x86架构系统，不支持ARM架构！"
+                echo -e "${huang}提示: ${bai} 目前该工具仅支持x86架构系统，不支持ARM架构！"
                 echo "------------------------"
                 echo -e "${lv}1. 全盘扫描 ${bai}             ${huang}2. 重要目录扫描 ${bai}            ${kjlan} 3. 自定义目录扫描 ${bai}"
                 echo "------------------------"
@@ -2872,7 +2861,7 @@ linux_docker() {
                           ;;
                       8)
                           send_stats "删除所有容器"
-                          read -p "$(echo -e "${hong}注意：${bai}确定删除所有容器吗？(Y/N): ")" choice
+                          read -p "$(echo -e "${hong}注意: ${bai}确定删除所有容器吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rm -f $(docker ps -a -q)
@@ -2969,7 +2958,7 @@ linux_docker() {
                           ;;
                       4)
                           send_stats "删除所有镜像"
-                          read -p "$(echo -e "${hong}注意：${bai}确定删除所有镜像吗？(Y/N): ")" choice
+                          read -p "$(echo -e "${hong}注意: ${bai}确定删除所有镜像吗？(Y/N): ")" choice
                           case "$choice" in
                             [Yy])
                               docker rmi -f $(docker images -q)
@@ -3111,7 +3100,7 @@ linux_docker() {
           7)
               clear
               send_stats "Docker清理"
-              read -p "$(echo -e "${huang}注意：${bai}将清理无用的镜像容器网络，包括停止的容器，确定清理吗？(Y/N): ")" choice
+              read -p "$(echo -e "${huang}提示: ${bai}将清理无用的镜像容器网络，包括停止的容器，确定清理吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker system prune -af --volumes
@@ -3151,7 +3140,7 @@ linux_docker() {
           20)
               clear
               send_stats "Docker卸载"
-              read -p "$(echo -e "${hong}注意：${bai}确定卸载docker环境吗？(Y/N): ")" choice
+              read -p "$(echo -e "${hong}注意: ${bai}确定卸载docker环境吗？(Y/N): ")" choice
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
@@ -4650,7 +4639,7 @@ linux_ldnmp() {
       root_use
       send_stats "更新LDNMP环境"
 
-        read -p "$(echo -e "${huang}注意：${bai}长时间不更新环境的用户，请慎重更新LDNMP环境，会有数据库更新失败的风险。确定更新LDNMP环境吗？(Y/N): ")" choice
+        read -p "$(echo -e "${huang}提示: ${bai}长时间不更新环境的用户，请慎重更新LDNMP环境，会有数据库更新失败的风险。确定更新LDNMP环境吗？(Y/N): ")" choice
         case "$choice" in
           [Yy])
             docker rm -f nginx php php74 mysql redis
@@ -5801,7 +5790,7 @@ linux_work() {
       echo "▶ 我的工作区"
       echo "系统将为你提供可以后台常驻运行的工作区，你可以用来执行长时间的任务"
       echo "即使你断开SSH，工作区中的任务也不会中断，后台常驻任务。"
-      echo -e "${huang}注意：${bai}进入工作区后使用Ctrl+b再单独按d，退出工作区！"
+      echo -e "${huang}提示: ${bai}进入工作区后使用Ctrl+b再单独按d，退出工作区！"
       echo "------------------------"
       echo "1. 1号工作区"
       echo "2. 2号工作区"
