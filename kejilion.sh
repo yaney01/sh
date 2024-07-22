@@ -278,27 +278,24 @@ kejilion() {
 }
 
 check_port() {
+
+    docker rm -f nginx >/dev/null 2>&1
+
     # 定义要检测的端口
-    PORT=443
+    PORT=80
 
     # 检查端口占用情况
-    result=$(ss -tulpn | grep ":$PORT")
+    result=$(ss -tulpn | grep ":\b$PORT\b")
 
     # 判断结果并输出相应信息
     if [ -n "$result" ]; then
-        is_nginx_container=$(docker ps --format '{{.Names}}' | grep 'nginx')
-
-        # 判断是否是Nginx容器占用端口
-        if [ -n "$is_nginx_container" ]; then
-            :
-        else
             clear
             echo -e "${hong}注意：${bai}端口 ${huang}$PORT${hong} 已被占用，无法安装环境，卸载以下程序后重试！"
             echo "$result"
+            send_stats "端口冲突无法安装LDNMP环境"
             break_end
             linux_ldnmp
 
-        fi
     fi
 }
 
@@ -603,7 +600,6 @@ ldnmp_v() {
 install_ldnmp() {
 
       check_swap
-      docker rm -f nginx >/dev/null 2>&1
       cd /home/web && docker compose up -d
       clear
       echo "正在配置LDNMP环境，请耐心稍等……"
@@ -834,6 +830,7 @@ certs_status() {
     if [ -f "$file_path" ]; then
         :
     else
+        send_stats "域名申请失败"
         echo -e "${hong}注意：${bai}检测到域名证书申请失败，请检测域名是否正确解析或更换域名重新尝试！"
         break_end
         linux_ldnmp
@@ -847,12 +844,14 @@ domain_regex="^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
 if [[ $yuming =~ $domain_regex ]]; then
   :
 else
+  send_stats "域名格式不正确"
   echo -e "${huang}注意：${bai}域名格式不正确，请重新输入"
   break_end
   linux_ldnmp
 fi
 
 if [ -e /home/web/conf.d/$yuming.conf ]; then
+  send_stats "域名重复使用"
   echo -e "${huang}注意：${bai}当前 ${yuming} 域名已被使用，请前往31站点管理，删除站点，再部署 ${webname} ！"
   break_end
   linux_ldnmp
@@ -1166,6 +1165,7 @@ output_status() {
 ldnmp_install_status_one() {
 
    if docker inspect "php" &>/dev/null; then
+    send_stats "无法再次安装LDNMP环境"
     echo -e "${huang}提示: ${bai}LDNMP环境已安装。无法再次安装。可以使用37. 更新LDNMP环境。"
     break_end
     linux_ldnmp
@@ -1178,6 +1178,7 @@ ldnmp_install_status_one() {
 ldnmp_install_status_two() {
 
    if docker inspect "php" &>/dev/null; then
+    send_stats "还原失败原因已安装LDNMP环境"
     echo -e "${huang}提示: ${bai}LDNMP环境已安装。无法还原LDNMP环境，请先卸载现有环境再次尝试还原。"
     break_end
     linux_ldnmp
@@ -1196,6 +1197,7 @@ ldnmp_install_status() {
    if docker inspect "php" &>/dev/null; then
     echo "LDNMP环境已安装，开始部署 $webname"
    else
+    send_stats "请先安装LDNMP环境"
     echo -e "${huang}LDNMP环境未安装，请先安装LDNMP环境，再部署网站${bai}"
     break_end
     linux_ldnmp
@@ -1210,6 +1212,7 @@ nginx_install_status() {
    if docker inspect "nginx" &>/dev/null; then
     echo "nginx环境已安装，开始部署 $webname"
    else
+    send_stats "请先安装nginx环境"
     echo -e "${huang}nginx未安装，请先安装nginx环境，再部署网站${bai}"
     break_end
     linux_ldnmp
@@ -2085,11 +2088,11 @@ elrepo() {
 clamav_freshclam() {
     echo -e "${huang}正在更新病毒库...${bai}"
     docker run --rm \
-        --mount source=$VOLUME_NAME,target=/var/lib/clamav \
+        --name clamav \
+        --mount source=clam_db,target=/var/lib/clamav \
         clamav/clamav:latest \
         freshclam
 }
-
 
 clamav_scan() {
     if [ $# -eq 0 ]; then
@@ -2111,14 +2114,27 @@ clamav_scan() {
         SCAN_PARAMS+="/mnt/host${dir} "
     done
 
+    mkdir -p /home/docker/clamav/log/ > /dev/null 2>&1
+    > /home/docker/clamav/log/scan.log > /dev/null 2>&1
+
     # 执行 Docker 命令
     docker run -it --rm \
-        --name clamav_scan \
-        --mount source=$VOLUME_NAME,target=/var/lib/clamav \
+        --name clamav \
+        --mount source=clam_db,target=/var/lib/clamav \
         $MOUNT_PARAMS \
+        -v /home/docker/clamav/log/:/var/log/clamav/ \
         clamav/clamav:latest \
-        clamscan -r $SCAN_PARAMS
+        clamscan -r --log=/var/log/clamav/scan.log $SCAN_PARAMS
+
+    echo -e "${lv}$@ 扫描完成，病毒报告存放在${huang}/home/docker/clamav/log/scan.log ${bai}"
+
+
 }
+
+
+
+
+
 
 
 clamav() {
@@ -3941,7 +3957,6 @@ linux_ldnmp() {
       wget -O /home/web/nginx.conf https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
       wget -O /home/web/conf.d/default.conf https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
       default_server_ssl
-      docker rm -f nginx >/dev/null 2>&1
       docker rmi nginx nginx:alpine >/dev/null 2>&1
       docker run -d --name nginx --restart always -p 80:80 -p 443:443 -p 443:443/udp -v /home/web/nginx.conf:/etc/nginx/nginx.conf -v /home/web/conf.d:/etc/nginx/conf.d -v /home/web/certs:/etc/nginx/certs -v /home/web/html:/var/www/html -v /home/web/log/nginx:/var/log/nginx nginx:alpine
 
@@ -4328,7 +4343,7 @@ linux_ldnmp() {
       ldnmp_install_status_two
       echo "请确认home目录中已经放置网站备份的gz压缩包，按任意键继续……"
       read -n 1 -s -r -p ""
-      echo "开始解压……"
+      echo -e "${huang}正在解压...${bai}"
       cd /home/ && ls -t /home/*.tar.gz | head -1 | xargs -I {} tar -xzf {}
       check_port
       install_dependency
@@ -6109,6 +6124,7 @@ EOF
                   :
               else
                   echo "端口号无效，请输入1到65535之间的数字。"
+                  send_stats "输入无效SSH端口"
                   break_end
                   linux_Settings
               fi
@@ -7764,6 +7780,7 @@ kejilion_update() {
                 yinsiyuanquan2
                 cp ./kejilion.sh /usr/local/bin/k > /dev/null 2>&1
                 echo -e "${lv}脚本已更新到最新版本！${huang}v$sh_v_new${bai}"
+                send_stats "脚本已经最新了"
                 break_end
                 kejilion
                 ;;
