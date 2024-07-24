@@ -300,6 +300,20 @@ check_port() {
 }
 
 
+install_add_docker_cn() {
+
+country=$(curl -s ipinfo.io/country)
+if [ "$country" = "CN" ]; then
+    cat > /etc/docker/daemon.json << EOF
+{
+    "registry-mirrors": ["https://docker.kejilion.pro"]
+}
+EOF
+
+fi
+
+}
+
 
 install_add_docker_guanfang() {
 country=$(curl -s ipinfo.io/country)
@@ -308,15 +322,11 @@ if [ "$country" = "CN" ]; then
     curl -sS -O https://raw.githubusercontent.com/kejilion/docker/main/install && chmod +x install
     sh install --mirror Aliyun
     rm -f install
-    cat > /etc/docker/daemon.json << EOF
-{
-    "registry-mirrors": ["https://docker.kejilion.pro"]
-}
-EOF
 
 else
     curl -fsSL https://get.docker.com | sh
 fi
+install_add_docker_cn
 k enable docker
 k start docker
 
@@ -348,6 +358,7 @@ install_add_docker() {
             fi
         fi
         dnf install -y docker-ce docker-ce-cli containerd.io
+        install_add_docker_cn
         k enable docker
         k start docker
 
@@ -385,6 +396,7 @@ install_add_docker() {
         fi
         apt update
         apt install -y docker-ce docker-ce-cli containerd.io
+        install_add_docker_cn
         k enable docker
         k start docker
 
@@ -392,6 +404,7 @@ install_add_docker() {
         install_add_docker_guanfang
     else
         k install docker docker-compose
+        install_add_docker_cn
         k enable docker
         k start docker
     fi
@@ -3143,7 +3156,7 @@ linux_docker() {
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
-                  k remove docker docker-compose
+                  k remove docker docker-compose docker-ce docker-ce-cli containerd.io
 
                   ;;
                 [Nn])

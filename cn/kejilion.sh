@@ -300,6 +300,20 @@ check_port() {
 }
 
 
+install_add_docker_cn() {
+
+country=$(curl -s ipinfo.io/country)
+if [ "$country" = "CN" ]; then
+    cat > /etc/docker/daemon.json << EOF
+{
+    "registry-mirrors": ["https://docker.kejilion.pro"]
+}
+EOF
+
+fi
+
+}
+
 
 install_add_docker_guanfang() {
 country=$(curl -s ipinfo.io/country)
@@ -308,15 +322,11 @@ if [ "$country" = "CN" ]; then
     curl -sS -O https://raw.gitmirror.com/kejilion/docker/main/install && chmod +x install
     sh install --mirror Aliyun
     rm -f install
-    cat > /etc/docker/daemon.json << EOF
-{
-    "registry-mirrors": ["https://docker.kejilion.pro"]
-}
-EOF
 
 else
     curl -fsSL https://get.docker.com | sh
 fi
+install_add_docker_cn
 k enable docker
 k start docker
 
@@ -348,6 +358,7 @@ install_add_docker() {
             fi
         fi
         dnf install -y docker-ce docker-ce-cli containerd.io
+        install_add_docker_cn
         k enable docker
         k start docker
 
@@ -385,6 +396,7 @@ install_add_docker() {
         fi
         apt update
         apt install -y docker-ce docker-ce-cli containerd.io
+        install_add_docker_cn
         k enable docker
         k start docker
 
@@ -392,6 +404,7 @@ install_add_docker() {
         install_add_docker_guanfang
     else
         k install docker docker-compose
+        install_add_docker_cn
         k enable docker
         k start docker
     fi
@@ -3143,7 +3156,7 @@ linux_docker() {
               case "$choice" in
                 [Yy])
                   docker rm $(docker ps -a -q) && docker rmi $(docker images -q) && docker network prune
-                  k remove docker docker-compose
+                  k remove docker docker-compose docker-ce docker-ce-cli containerd.io
 
                   ;;
                 [Nn])
@@ -4723,6 +4736,7 @@ linux_panel() {
       echo "33. Sun-Panel导航面板                   34. Pingvin-Share文件分享平台"
       echo "35. 极简朋友圈                          36. LobeChatAI聊天聚合网站"
       echo -e "37. MyIP工具箱 ${huang}★${bai}                        38. 小雅alist全家桶"
+      echo "39. Bililive直播录制工具"
       echo "------------------------"
       echo "51. PVE开小鸡面板"
       echo "------------------------"
@@ -5787,6 +5801,25 @@ linux_panel() {
             bash -c "$(curl --insecure -fsSL https://ddsrem.com/xiaoya_install.sh)"
               ;;
 
+          39)
+
+            if [ ! -d /home/docker/bililive-go/ ]; then
+                mkdir -p /home/docker/bililive-go/ > /dev/null 2>&1
+                wget -O /home/docker/bililive-go/config.yml https://raw.gitmirror.com/hr3lxphr6j/bililive-go/master/config.yml > /dev/null 2>&1
+            fi
+
+            docker_name="bililive-go"
+            docker_img="chigusa/bililive-go"
+            docker_port=8039
+            docker_rum="docker run --restart=always --name bililive-go -v /home/docker/bililive-go/config.yml:/etc/bililive-go/config.yml -v /home/docker/bililive-go/Videos:/srv/bililive -p 8039:8080 -d chigusa/bililive-go"
+            docker_describe="Bililive-go是一个支持多种直播平台的直播录制工具"
+            docker_url="官网介绍: https://hub.gitmirror.com/https://github.com/hr3lxphr6j/bililive-go"
+            docker_use=""
+            docker_passwd=""
+            docker_app
+              ;;
+
+
           51)
             clear
             send_stats "PVE开小鸡"
@@ -6205,7 +6238,7 @@ EOF
             passwd "$new_username"
 
             # 赋予新用户sudo权限
-            echo "$new_username ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
+            echo "$new_username ALL=(ALL:ALL) ALL" | tee -a /etc/sudoers
 
             # 禁用ROOT用户登录
             passwd -l root
@@ -6720,6 +6753,7 @@ EOF
                   ;;
               *)
                   echo "已取消"
+                  break
                   ;;
 
           esac
