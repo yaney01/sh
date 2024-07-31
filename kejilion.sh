@@ -2863,22 +2863,22 @@ linux_docker() {
 
                       2)
                           send_stats "启动指定容器"
-                          read -p "请输入容器名: " dockername
+                          read -p "请输入容器名（多个容器名请用空格分隔）: " dockername
                           docker start $dockername
                           ;;
                       3)
                           send_stats "停止指定容器"
-                          read -p "请输入容器名: " dockername
+                          read -p "请输入容器名（多个容器名请用空格分隔）: " dockername
                           docker stop $dockername
                           ;;
                       4)
                           send_stats "删除指定容器"
-                          read -p "请输入容器名: " dockername
+                          read -p "请输入容器名（多个容器名请用空格分隔）: " dockername
                           docker rm -f $dockername
                           ;;
                       5)
                           send_stats "重启指定容器"
-                          read -p "请输入容器名: " dockername
+                          read -p "请输入容器名（多个容器名请用空格分隔）: " dockername
                           docker restart $dockername
                           ;;
                       6)
@@ -2973,18 +2973,25 @@ linux_docker() {
                   case $sub_choice in
                       1)
                           send_stats "拉取镜像"
-                          read -p "请输入镜像名: " dockername
-                          docker pull $dockername
+                          read -p "请输入镜像名（多个镜像名请用空格分隔）: " imagenames
+                          for name in $imagenames; do
+                              echo -e "${huang}正在获取镜像: $name${bai}"
+                              docker pull $name
+                          done
                           ;;
                       2)
                           send_stats "更新镜像"
-                          read -p "请输入镜像名: " dockername
-                          docker pull $dockername
+                          read -p "请输入镜像名（多个镜像名请用空格分隔）: " imagenames
+                          for name in $imagenames; do
+                              echo -e "${huang}正在更新镜像: $name${bai}"
+                              docker pull $name
+                          done
                           ;;
                       3)
-                          send_stats "删除镜像"
-                          read -p "请输入镜像名: " dockername
-                          docker rmi -f $dockername
+                          read -p "请输入镜像名（多个镜像名请用空格分隔）: " imagenames
+                          for name in $imagenames; do
+                              docker rmi -f $name
+                          done
                           ;;
                       4)
                           send_stats "删除所有镜像"
@@ -6619,11 +6626,10 @@ EOF
 
           17)
           root_use
-          send_stats "高级防火墙管理"
           if dpkg -l | grep -q iptables-persistent; then
             while true; do
-                  echo "防火墙已安装"
-                  send_stats "高级防火墙已安装"
+                  echo "高级防火墙管理"
+                  send_stats "高级防火墙管理"
                   echo "------------------------"
                   iptables -L INPUT
 
@@ -6648,12 +6654,14 @@ EOF
                       sed -i "/COMMIT/i -A INPUT -p tcp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
                       sed -i "/COMMIT/i -A INPUT -p udp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
                       iptables-restore < /etc/iptables/rules.v4
+                      send_stats "开放指定端口"
 
                           ;;
                       2)
                       read -p "请输入关闭的端口号: " c_port
                       sed -i "/--dport $c_port/d" /etc/iptables/rules.v4
                       iptables-restore < /etc/iptables/rules.v4
+                      send_stats "关闭指定端口"
                         ;;
 
                       3)
@@ -6672,7 +6680,7 @@ EOF
 COMMIT
 EOF
                       iptables-restore < /etc/iptables/rules.v4
-
+                      send_stats "开放所有端口"
                           ;;
                       4)
                       current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
@@ -6690,31 +6698,34 @@ EOF
 COMMIT
 EOF
                       iptables-restore < /etc/iptables/rules.v4
-
+                      send_stats "关闭所有端口"
                           ;;
 
                       5)
                       read -p "请输入放行的IP: " o_ip
                       sed -i "/COMMIT/i -A INPUT -s $o_ip -j ACCEPT" /etc/iptables/rules.v4
                       iptables-restore < /etc/iptables/rules.v4
-
+                      send_stats "IP白名单"
                           ;;
 
                       6)
                       read -p "请输入封锁的IP: " c_ip
                       sed -i "/COMMIT/i -A INPUT -s $c_ip -j DROP" /etc/iptables/rules.v4
                       iptables-restore < /etc/iptables/rules.v4
+                      send_stats "IP黑名单"
                           ;;
 
                       7)
-                     read -p "请输入清除的IP: " d_ip
-                     sed -i "/-A INPUT -s $d_ip/d" /etc/iptables/rules.v4
-                     iptables-restore < /etc/iptables/rules.v4
+                      read -p "请输入清除的IP: " d_ip
+                      sed -i "/-A INPUT -s $d_ip/d" /etc/iptables/rules.v4
+                      iptables-restore < /etc/iptables/rules.v4
+                      send_stats "清除指定IP"
                           ;;
 
                       9)
                       remove iptables-persistent
                       rm /etc/iptables/rules.v4
+                      send_stats "卸载防火墙"
                       break
                           ;;
 
@@ -6737,28 +6748,28 @@ EOF
 
           case "$choice" in
             [Yy])
-            if [ -r /etc/os-release ]; then
-                . /etc/os-release
-                if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
-                    echo "当前环境不支持，仅支持Debian和Ubuntu系统"
-                    break_end
-                    linux_Settings
-                fi
-            else
-                echo "无法确定操作系统类型"
-                break
-            fi
+              if [ -r /etc/os-release ]; then
+                  . /etc/os-release
+                  if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
+                      echo "当前环境不支持，仅支持Debian和Ubuntu系统"
+                      break_end
+                      linux_Settings
+                  fi
+              else
+                  echo "无法确定操作系统类型"
+                  break
+              fi
 
-          clear
-          iptables_open
-          remove iptables-persistent ufw
-          rm /etc/iptables/rules.v4
+              clear
+              iptables_open
+              remove iptables-persistent ufw
+              rm /etc/iptables/rules.v4
 
-          apt update -y && apt install -y iptables-persistent
+              apt update -y && apt install -y iptables-persistent
 
-          current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+              current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
 
-          cat > /etc/iptables/rules.v4 << EOF
+              cat > /etc/iptables/rules.v4 << EOF
 *filter
 :INPUT DROP [0:0]
 :FORWARD DROP [0:0]
@@ -6771,9 +6782,9 @@ EOF
 COMMIT
 EOF
 
-          iptables-restore < /etc/iptables/rules.v4
-          systemctl enable netfilter-persistent
-          echo "防火墙安装完成"
+              iptables-restore < /etc/iptables/rules.v4
+              systemctl enable netfilter-persistent
+              echo "防火墙安装完成"
 
 
               ;;
