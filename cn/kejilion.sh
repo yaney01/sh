@@ -6992,6 +6992,19 @@ EOF
                       sed -i "s/$current_hostname/$new_hostname/g" /etc/hostname
                       systemctl restart systemd-hostnamed
                   fi
+
+                  if grep -q "127.0.0.1" /etc/hosts; then
+                      sed -i "s/127.0.0.1 .*/127.0.0.1       $new_hostname localhost localhost.localdomain/g" /etc/hosts
+                  else
+                      echo "127.0.0.1       $new_hostname localhost localhost.localdomain" >> /etc/hosts
+                  fi
+
+                  if grep -q "^::1" /etc/hosts; then
+                      sed -i "s/^::1 .*/::1             $new_hostname localhost localhost.localdomain ipv6-localhost ipv6-loopback/g" /etc/hosts
+                  else
+                      echo "::1             $new_hostname localhost localhost.localdomain ipv6-localhost ipv6-loopback" >> /etc/hosts
+                  fi            
+                  
                   echo "主机名已更改为: $new_hostname"
                   send_stats "主机名已更改"
                   sleep 1
