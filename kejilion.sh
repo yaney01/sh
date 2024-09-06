@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh_v="3.0.5"
+sh_v="3.0.6"
 
 bai='\033[0m'
 hui='\e[37m'
@@ -3585,8 +3585,8 @@ linux_Oracle() {
       echo -e "${gl_kjlan}------------------------"
       echo -e "${gl_kjlan}3.   ${gl_bai}DD重装系统脚本"
       echo -e "${gl_kjlan}4.   ${gl_bai}R探长开机脚本"
-      echo -e "${gl_kjlan}------------------------"
       echo -e "${gl_kjlan}5.   ${gl_bai}开启ROOT密码登录模式"
+      echo -e "${gl_kjlan}6.   ${gl_bai}IPV6恢复工具"
       echo -e "${gl_kjlan}------------------------"
       echo -e "${gl_kjlan}0.   ${gl_bai}返回主菜单"
       echo -e "${gl_kjlan}------------------------${gl_bai}"
@@ -3696,6 +3696,12 @@ linux_Oracle() {
               clear
               add_sshpasswd
 
+              ;;
+          6)
+              clear
+              bash <(curl -L -s jhb.ovh/jb/v6.sh)
+              echo "该功能由jhb大神提供，感谢他！"
+              send_stats "ipv6修复"
               ;;
           0)
               kejilion
@@ -6598,7 +6604,7 @@ EOF
                 fi
                 echo ""
                 echo "------------------------"
-                echo "1. IPv4 优先          2. IPv6 优先          0. 退出"
+                echo "1. IPv4 优先          2. IPv6 优先          3. IPv6 修复工具          0. 退出"
                 echo "------------------------"
                 read -p "选择优先的网络: " choice
 
@@ -6613,6 +6619,14 @@ EOF
                         echo "已切换为 IPv6 优先"
                         send_stats "已切换为 IPv6 优先"
                         ;;
+
+                    3)
+                        clear
+                        bash <(curl -L -s jhb.ovh/jb/v6.sh)
+                        echo "该功能由jhb大神提供，感谢他！"
+                        send_stats "ipv6修复"
+                        ;;
+
                     *)
                         break
                         ;;
