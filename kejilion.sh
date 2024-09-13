@@ -13,10 +13,23 @@ gl_bai='\033[0m'
 gl_zi='\033[35m'
 gl_kjlan='\033[96m'
 
-gh_proxy=""
-# gh_proxy="https://gh.kejilion.pro/"
 
-zhushi=1  # 0 表示执行，1 表示不执行
+
+country="default"
+cn_yuan() {
+if [ "$country" = "CN" ]; then
+    zhushi=0 
+    gh_proxy="https://gh.kejilion.pro/"
+else
+    zhushi=1  # 0 表示执行，1 表示不执行
+    gh_proxy=""
+fi
+
+}
+
+cn_yuan
+
+
 
 # 定义一个函数来执行命令
 run_command() {
@@ -1857,7 +1870,8 @@ clear
 dd_xitong() {
         send_stats "重装系统"
         dd_xitong_MollyLau() {
-            wget --no-check-certificate -qO InstallNET.sh '${gh_proxy}https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh' && chmod a+x InstallNET.sh
+            wget --no-check-certificate -qO InstallNET.sh "${gh_proxy}https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh" && chmod a+x InstallNET.sh
+
         }
 
         dd_xitong_bin456789() {
@@ -3684,7 +3698,7 @@ linux_Oracle() {
 
               read -p "请输入你重装后的密码: " vpspasswd
               install wget
-              bash <(wget --no-check-certificate -qO- '${gh_proxy}https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh') $xitong -v 64 -p $vpspasswd -port 22
+              bash <(wget --no-check-certificate -qO- "${gh_proxy}https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh") $xitong -v 64 -p $vpspasswd -port 22
               send_stats "甲骨文云重装系统脚本"
               ;;
             [Nn])
