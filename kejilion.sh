@@ -39,7 +39,7 @@ run_command() {
 
 
 
-permission_granted="false"
+permission_granted="true"
 
 CheckFirstRun_true() {
 	if grep -q '^permission_granted="true"' /usr/local/bin/k > /dev/null 2>&1; then
@@ -2991,11 +2991,12 @@ shell_bianse() {
 linux_trash() {
   root_use
   send_stats "系统回收站"
+
   local bashrc_profile
-  if command -v dnf &>/dev/null || command -v yum &>/dev/null || command -v apt &>/dev/null; then
-	bashrc_profile="/root/.bashrc"
+  if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+	    bashrc_profile="/root/.bashrc"
   else
-	bashrc_profile="/root/.profile"
+	    bashrc_profile="/root/.profile"
   fi
 
   local TRASH_DIR="$HOME/.local/share/Trash/files"
@@ -3003,10 +3004,10 @@ linux_trash() {
   while true; do
 
 	local trash_status
-	if alias rm 2>/dev/null | grep -q "trash"; then
-	  trash_status="${gl_lv}已启用${gl_bai}"
+	if ! grep -q "trash-put" "$bashrc_profile"; then
+	    trash_status="${hui}未启用${gl_bai}"
 	else
-	  trash_status="${hui}未启用${gl_bai}"
+	    trash_status="${gl_lv}已启用${gl_bai}"
 	fi
 
 	clear
@@ -3026,7 +3027,7 @@ linux_trash() {
 	  1)
 		k add trash-cli
 		sed -i '/alias rm/d' "$bashrc_profile"
-		echo "alias rm='trash'" >> "$bashrc_profile"
+		echo "alias rm='trash-put'" >> "$bashrc_profile"
 		source "$bashrc_profile"
 		echo "回收站已启用，删除的文件将移至回收站。"
 		sleep 2
