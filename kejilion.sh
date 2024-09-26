@@ -2992,22 +2992,16 @@ linux_trash() {
   root_use
   send_stats "系统回收站"
 
-  local bashrc_profile
-  if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
-	    bashrc_profile="/root/.bashrc"
-  else
-	    bashrc_profile="/root/.profile"
-  fi
-
+  local bashrc_profile="/root/.bashrc"
   local TRASH_DIR="$HOME/.local/share/Trash/files"
 
   while true; do
 
 	local trash_status
 	if ! grep -q "trash-put" "$bashrc_profile"; then
-	    trash_status="${hui}未启用${gl_bai}"
+		trash_status="${hui}未启用${gl_bai}"
 	else
-	    trash_status="${gl_lv}已启用${gl_bai}"
+		trash_status="${gl_lv}已启用${gl_bai}"
 	fi
 
 	clear
@@ -3041,7 +3035,6 @@ linux_trash() {
 		sleep 2
 		;;
 	  3)
-		echo "当前回收站内容:"
 		read -e -p "输入要还原的文件名: " file_to_restore
 		if [ -e "$TRASH_DIR/$file_to_restore" ]; then
 		  mv "$TRASH_DIR/$file_to_restore" "$HOME/"
