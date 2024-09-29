@@ -1589,6 +1589,7 @@ send_stats "安装LDNMP环境"
 root_use
 ldnmp_install_status_one
 check_port
+echo -e "${gl_huang}提示: ${gl_bai}LDNMP环境未安装，开始安装LDNMP环境..."
 install_dependency
 install_docker
 install_certbot
@@ -1603,6 +1604,7 @@ send_stats "安装nginx环境"
 root_use
 ldnmp_install_status_one
 check_port
+echo -e "${gl_huang}提示: ${gl_bai}nginx未安装，开始安装nginx环境..."
 install_dependency
 install_docker
 install_certbot
@@ -1626,7 +1628,6 @@ ldnmp_install_status() {
 	echo "LDNMP环境已安装，开始部署 $webname"
    else
 	send_stats "请先安装LDNMP环境"
-	echo -e "${gl_huang}提示: ${gl_bai}LDNMP环境未安装，开始安装LDNMP环境..."
 	ldnmp_install_all
 	break_end
 	clear
@@ -1642,7 +1643,6 @@ nginx_install_status() {
 	echo "nginx环境已安装，开始部署 $webname"
    else
 	send_stats "请先安装nginx环境"
-	echo -e "${gl_huang}提示: ${gl_bai}nginx未安装，开始安装nginx环境..."
 	nginx_install_all
 	break_end
 	clear
@@ -1672,8 +1672,232 @@ nginx_web_on() {
 
 
 
+ldnmp_wp() {
+  clear
+  # wordpress
+  webname="WordPress"
+  send_stats "安装$webname"
+  ldnmp_install_status
+  add_yuming
+  install_ssltls
+  certs_status
+  add_db
+  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/wordpress.com.conf
+  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+  cd /home/web/html
+  mkdir $yuming
+  cd $yuming
+  wget -O latest.zip https://cn.wordpress.org/latest-zh_CN.zip
+  unzip latest.zip
+  rm latest.zip
+  echo "define('FS_METHOD', 'direct'); define('WP_REDIS_HOST', 'redis'); define('WP_REDIS_PORT', '6379');" >> /home/web/html/$yuming/wordpress/wp-config-sample.php
+  restart_ldnmp
+  ldnmp_web_on
+  echo "数据库名: $dbname"
+  echo "用户名: $dbuse"
+  echo "密码: $dbusepasswd"
+  echo "数据库地址: mysql"
+  echo "表前缀: wp_"
+
+}
+
+ldnmp_Proxy() {
+	clear
+	webname="反向代理-IP+端口"
+	send_stats "安装$webname"
+	nginx_install_status
+	ip_address
+	add_yuming
+	read -e -p "请输入你的反代IP: " reverseproxy
+	read -e -p "请输入你的反代端口: " port
+	install_ssltls
+	certs_status
+	wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
+	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
+	sed -i "s/0000/$port/g" /home/web/conf.d/$yuming.conf
+	docker restart nginx
+	nginx_web_on
+
+}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ldnmp_web_status() {
+	root_use
+	while true; do
+		clear
+		send_stats "LDNMP站点管理"
+		echo "LDNMP环境"
+		echo "------------------------"
+		ldnmp_v
+
+		# ls -t /home/web/conf.d | sed 's/\.[^.]*$//'
+		echo "站点信息                      证书到期时间"
+		echo "------------------------"
+		for cert_file in /home/web/certs/*_cert.pem; do
+		  domain=$(basename "$cert_file" | sed 's/_cert.pem//')
+		  if [ -n "$domain" ]; then
+			expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
+			formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
+			printf "%-30s%s\n" "$domain" "$formatted_date"
+		  fi
+		done
+
+		echo "------------------------"
+		echo ""
+		echo "数据库信息"
+		echo "------------------------"
+		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
+
+		echo "------------------------"
+		echo ""
+		echo "站点目录"
+		echo "------------------------"
+		echo -e "数据 ${hui}/home/web/html${gl_bai}     证书 ${hui}/home/web/certs${gl_bai}     配置 ${hui}/home/web/conf.d${gl_bai}"
+		echo "------------------------"
+		echo ""
+		echo "操作"
+		echo "------------------------"
+		echo "1. 申请/更新域名证书               2. 更换站点域名"
+		echo "3. 清理站点缓存                    4. 查看站点分析报告"
+		echo "5. 编辑全局配置                    6. 编辑站点配置"
+		echo "------------------------"
+		echo "7. 删除指定站点                    8. 删除指定数据库"
+		echo "------------------------"
+		echo "0. 返回上一级选单"
+		echo "------------------------"
+		read -e -p "请输入你的选择: " sub_choice
+		case $sub_choice in
+			1)
+				send_stats "申请域名证书"
+				read -e -p "请输入你的域名: " yuming
+				install_certbot
+				install_ssltls
+				certs_status
+
+				;;
+
+			2)
+				send_stats "更换站点域名"
+				echo -e "${gl_hong}强烈建议: ${gl_bai}先备份好全站数据再更换站点域名！"
+				read -e -p "请输入旧域名: " oddyuming
+				read -e -p "请输入新域名: " yuming
+				install_certbot
+				install_ssltls
+				certs_status
+
+				# mysql替换
+				add_db
+
+				odd_dbname=$(echo "$oddyuming" | sed -e 's/[^A-Za-z0-9]/_/g')
+				odd_dbname="${odd_dbname}"
+
+				docker exec mysql mysqldump -u root -p"$dbrootpasswd" $odd_dbname | docker exec -i mysql mysql -u root -p"$dbrootpasswd" $dbname
+				docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $odd_dbname;"
+
+
+				tables=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "SHOW TABLES;" | awk '{ if (NR>1) print $1 }')
+				for table in $tables; do
+					columns=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "SHOW COLUMNS FROM $table;" | awk '{ if (NR>1) print $1 }')
+					for column in $columns; do
+						docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "UPDATE $table SET $column = REPLACE($column, '$oddyuming', '$yuming') WHERE $column LIKE '%$oddyuming%';"
+					done
+				done
+
+				# docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "
+				# UPDATE wp_options SET option_value = replace(option_value, '$oddyuming', '$yuming') WHERE option_name = 'home' OR option_name = 'siteurl';
+				# UPDATE wp_posts SET guid = replace(guid, '$oddyuming', '$yuming');
+				# UPDATE wp_posts SET post_content = replace(post_content, '$oddyuming', '$yuming');
+				# UPDATE wp_postmeta SET meta_value = replace(meta_value,'$oddyuming', '$yuming');
+				# "
+
+
+				# 网站目录替换
+				mv /home/web/html/$oddyuming /home/web/html/$yuming
+				# sed -i "s/$odd_dbname/$dbname/g" /home/web/html/$yuming/wordpress/wp-config.php
+				# sed -i "s/$oddyuming/$yuming/g" /home/web/html/$yuming/wordpress/wp-config.php
+
+				find /home/web/html/$yuming -type f -exec sed -i "s/$odd_dbname/$dbname/g" {} +
+				find /home/web/html/$yuming -type f -exec sed -i "s/$oddyuming/$yuming/g" {} +
+
+				mv /home/web/conf.d/$oddyuming.conf /home/web/conf.d/$yuming.conf
+				sed -i "s/$oddyuming/$yuming/g" /home/web/conf.d/$yuming.conf
+
+				rm /home/web/certs/${oddyuming}_key.pem
+				rm /home/web/certs/${oddyuming}_cert.pem
+
+				docker restart nginx
+
+				;;
+
+
+			3)
+				web_cache
+				;;
+			4)
+				send_stats "查看站点数据"
+				install goaccess
+				goaccess --log-format=COMBINED /home/web/log/nginx/access.log
+
+				;;
+
+			5)
+				send_stats "编辑全局配置"
+				install nano
+				nano /home/web/nginx.conf
+				docker restart nginx
+				;;
+
+			6)
+				send_stats "编辑站点配置"
+				read -e -p "编辑站点配置，请输入你要编辑的域名: " yuming
+				install nano
+				nano /home/web/conf.d/$yuming.conf
+				docker restart nginx
+				;;
+
+			7)
+				send_stats "删除站点数据目录"
+				read -e -p "删除站点数据目录，请输入你的域名: " yuming
+				rm -r /home/web/html/$yuming
+				rm /home/web/conf.d/$yuming.conf
+				rm /home/web/certs/${yuming}_key.pem
+				rm /home/web/certs/${yuming}_cert.pem
+				docker restart nginx
+				;;
+			8)
+				send_stats "删除站点数据库"
+				read -e -p "删除站点数据库，请输入数据库名: " shujuku
+				dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
+				docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $shujuku;" 2> /dev/null
+				;;
+			0)
+				break  # 跳出循环，退出菜单
+				;;
+			*)
+				break  # 跳出循环，退出菜单
+				;;
+		esac
+	done
+
+
+}
 
 
 
@@ -4567,27 +4791,7 @@ linux_ldnmp() {
 		;;
 
 	  23)
-	  clear
-	  webname="反向代理-IP+端口"
-	  send_stats "安装$webname"
-	  nginx_install_status
-	  ip_address
-	  add_yuming
-	  read -e -p "请输入你的反代IP: " reverseproxy
-	  read -e -p "请输入你的反代端口: " port
-
-	  install_ssltls
-	  certs_status
-
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
-	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
-	  sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
-	  sed -i "s/0000/$port/g" /home/web/conf.d/$yuming.conf
-
-	  docker restart nginx
-
-	  nginx_web_on
-
+	  ldnmp_Proxy
 		;;
 
 	  24)
@@ -4704,164 +4908,7 @@ linux_ldnmp() {
 
 
 	31)
-	root_use
-	while true; do
-		clear
-		send_stats "LDNMP站点管理"
-		echo "LDNMP环境"
-		echo "------------------------"
-		ldnmp_v
-
-		# ls -t /home/web/conf.d | sed 's/\.[^.]*$//'
-		echo "站点信息                      证书到期时间"
-		echo "------------------------"
-		for cert_file in /home/web/certs/*_cert.pem; do
-		  domain=$(basename "$cert_file" | sed 's/_cert.pem//')
-		  if [ -n "$domain" ]; then
-			expire_date=$(openssl x509 -noout -enddate -in "$cert_file" | awk -F'=' '{print $2}')
-			formatted_date=$(date -d "$expire_date" '+%Y-%m-%d')
-			printf "%-30s%s\n" "$domain" "$formatted_date"
-		  fi
-		done
-
-		echo "------------------------"
-		echo ""
-		echo "数据库信息"
-		echo "------------------------"
-		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "SHOW DATABASES;" 2> /dev/null | grep -Ev "Database|information_schema|mysql|performance_schema|sys"
-
-		echo "------------------------"
-		echo ""
-		echo "站点目录"
-		echo "------------------------"
-		echo -e "数据 ${hui}/home/web/html${gl_bai}     证书 ${hui}/home/web/certs${gl_bai}     配置 ${hui}/home/web/conf.d${gl_bai}"
-		echo "------------------------"
-		echo ""
-		echo "操作"
-		echo "------------------------"
-		echo "1. 申请/更新域名证书               2. 更换站点域名"
-		echo "3. 清理站点缓存                    4. 查看站点分析报告"
-		echo "5. 编辑全局配置                    6. 编辑站点配置"
-		echo "------------------------"
-		echo "7. 删除指定站点                    8. 删除指定数据库"
-		echo "------------------------"
-		echo "0. 返回上一级选单"
-		echo "------------------------"
-		read -e -p "请输入你的选择: " sub_choice
-		case $sub_choice in
-			1)
-				send_stats "申请域名证书"
-				read -e -p "请输入你的域名: " yuming
-				install_certbot
-				install_ssltls
-				certs_status
-
-				;;
-
-			2)
-				send_stats "更换站点域名"
-				echo -e "${gl_hong}强烈建议: ${gl_bai}先备份好全站数据再更换站点域名！"
-				read -e -p "请输入旧域名: " oddyuming
-				read -e -p "请输入新域名: " yuming
-				install_certbot
-				install_ssltls
-				certs_status
-
-				# mysql替换
-				add_db
-
-				odd_dbname=$(echo "$oddyuming" | sed -e 's/[^A-Za-z0-9]/_/g')
-				odd_dbname="${odd_dbname}"
-
-				docker exec mysql mysqldump -u root -p"$dbrootpasswd" $odd_dbname | docker exec -i mysql mysql -u root -p"$dbrootpasswd" $dbname
-				docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $odd_dbname;"
-
-
-				tables=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "SHOW TABLES;" | awk '{ if (NR>1) print $1 }')
-				for table in $tables; do
-					columns=$(docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "SHOW COLUMNS FROM $table;" | awk '{ if (NR>1) print $1 }')
-					for column in $columns; do
-						docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "UPDATE $table SET $column = REPLACE($column, '$oddyuming', '$yuming') WHERE $column LIKE '%$oddyuming%';"
-					done
-				done
-
-				# docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "
-				# UPDATE wp_options SET option_value = replace(option_value, '$oddyuming', '$yuming') WHERE option_name = 'home' OR option_name = 'siteurl';
-				# UPDATE wp_posts SET guid = replace(guid, '$oddyuming', '$yuming');
-				# UPDATE wp_posts SET post_content = replace(post_content, '$oddyuming', '$yuming');
-				# UPDATE wp_postmeta SET meta_value = replace(meta_value,'$oddyuming', '$yuming');
-				# "
-
-
-				# 网站目录替换
-				mv /home/web/html/$oddyuming /home/web/html/$yuming
-				# sed -i "s/$odd_dbname/$dbname/g" /home/web/html/$yuming/wordpress/wp-config.php
-				# sed -i "s/$oddyuming/$yuming/g" /home/web/html/$yuming/wordpress/wp-config.php
-
-				find /home/web/html/$yuming -type f -exec sed -i "s/$odd_dbname/$dbname/g" {} +
-				find /home/web/html/$yuming -type f -exec sed -i "s/$oddyuming/$yuming/g" {} +
-
-				mv /home/web/conf.d/$oddyuming.conf /home/web/conf.d/$yuming.conf
-				sed -i "s/$oddyuming/$yuming/g" /home/web/conf.d/$yuming.conf
-
-				rm /home/web/certs/${oddyuming}_key.pem
-				rm /home/web/certs/${oddyuming}_cert.pem
-
-				docker restart nginx
-
-				;;
-
-
-			3)
-				web_cache
-				;;
-			4)
-				send_stats "查看站点数据"
-				install goaccess
-				goaccess --log-format=COMBINED /home/web/log/nginx/access.log
-
-				;;
-
-			5)
-				send_stats "编辑全局配置"
-				install nano
-				nano /home/web/nginx.conf
-				docker restart nginx
-				;;
-
-			6)
-				send_stats "编辑站点配置"
-				read -e -p "编辑站点配置，请输入你要编辑的域名: " yuming
-				install nano
-				nano /home/web/conf.d/$yuming.conf
-				docker restart nginx
-				;;
-
-			7)
-				send_stats "删除站点数据目录"
-				read -e -p "删除站点数据目录，请输入你的域名: " yuming
-				rm -r /home/web/html/$yuming
-				rm /home/web/conf.d/$yuming.conf
-				rm /home/web/certs/${yuming}_key.pem
-				rm /home/web/certs/${yuming}_cert.pem
-				docker restart nginx
-				;;
-			8)
-				send_stats "删除站点数据库"
-				read -e -p "删除站点数据库，请输入数据库名: " shujuku
-				dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
-				docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE $shujuku;" 2> /dev/null
-				;;
-			0)
-				break  # 跳出循环，退出菜单
-				;;
-			*)
-				break  # 跳出循环，退出菜单
-				;;
-		esac
-	done
-
+	  ldnmp_web_status
 	  ;;
 
 
@@ -8755,13 +8802,12 @@ echo "域名证书到期查询    k ssl ps"
 echo "docker环境安装      k docker install |k docker 安装"
 echo "docker容器管理      k docker ps |k docker 容器"
 echo "docker镜像管理      k docker img |k docker 镜像"
+echo "LDNMP站点管理       k web"
 echo "LDNMP缓存清理       k web cache"
+echo "安装WordPress       k wp |k wordpress"
+echo "安装反向代理        k fd |k rp |k 反代"
 
 }
-
-
-
-
 
 
 
@@ -8798,6 +8844,12 @@ else
 			;;
 		trash|hsz|回收站)
 			linux_trash
+			;;
+		wp|wordpress)
+			ldnmp_wp
+			;;
+		fd|rp|反代)
+			ldnmp_Proxy
 			;;
 		status|状态)
 			shift
@@ -8861,14 +8913,18 @@ else
 			;;
 
 		web)
-			shift
-			case $1 in
-				cache) web_cache ;;
-				*) k_info ;;
-			esac
+		   shift
+			if [ "$1" = "cache" ]; then
+				web_cache
+			elif [ -z "$1" ]; then
+				ldnmp_web_status
+			else
+				k_info
+			fi
 			;;
 		*)
 			k_info
 			;;
 	esac
 fi
+
