@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.1.6"
+sh_v="3.1.7"
 
 bai='\033[0m'
 hui='\e[37m'
@@ -1072,7 +1072,11 @@ install_ssltls_text() {
 
 add_ssl() {
 
-add_yuming
+yuming="${1:-}"
+if [ -z "$yuming" ]; then
+	add_yuming
+fi
+
 install_certbot
 install_ssltls
 certs_status
@@ -1312,6 +1316,20 @@ web_cache() {
   preheat_cache
 }
 
+
+
+web_del() {
+send_stats "删除站点数据目录"
+read -e -p "删除站点数据目录，请输入你的域名: " yuming
+if [[ -z "$yuming" ]]; then
+	return
+fi
+rm -r /home/web/html/$yuming
+rm /home/web/conf.d/$yuming.conf
+rm /home/web/certs/${yuming}_key.pem
+rm /home/web/certs/${yuming}_cert.pem
+docker restart nginx
+}
 
 
 
@@ -1889,13 +1907,7 @@ ldnmp_web_status() {
 				;;
 
 			7)
-				send_stats "删除站点数据目录"
-				read -e -p "删除站点数据目录，请输入你的域名: " yuming
-				rm -r /home/web/html/$yuming
-				rm /home/web/conf.d/$yuming.conf
-				rm /home/web/certs/${yuming}_key.pem
-				rm /home/web/certs/${yuming}_cert.pem
-				docker restart nginx
+				web_del
 				;;
 			8)
 				send_stats "删除站点数据库"
@@ -8896,12 +8908,15 @@ else
 			;;
 
 		ssl)
-		   shift
+			shift
 			if [ "$1" = "ps" ]; then
 				send_stats "查看证书状态"
 				ssl_ps
 			elif [ -z "$1" ]; then
 				add_ssl
+				send_stats "快速申请证书"
+			elif [ -n "$1" ]; then
+				add_ssl "$1"
 				send_stats "快速申请证书"
 			else
 				k_info
