@@ -1030,21 +1030,26 @@ install_ssltls() {
 	  docker stop nginx > /dev/null 2>&1
 	  iptables_open > /dev/null 2>&1
 	  cd ~
-	  echo -e "${gl_huang}正在申请域名证书...${gl_bai}"
-	  certbot_version=$(certbot --version 2>&1 | grep -oP "\d+\.\d+\.\d+")
+	  file_path="/etc/letsencrypt/live/$yuming/fullchain.pem"
+	  if [ ! -f "$file_path" ]; then
+		echo -e "${gl_huang}正在申请域名证书...${gl_bai}"
+		certbot_version=$(certbot --version 2>&1 | grep -oP "\d+\.\d+\.\d+")
 
-	  version_ge() {
-		  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
-	  }
+		version_ge() {
+	  	  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" != "$1" ]
+		}
 
-	  if version_ge "$certbot_version" "1.17.0"; then
-		  certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal --key-type ecdsa
-	  else
-		  certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+		if version_ge "$certbot_version" "1.17.0"; then
+	  	  certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal --key-type ecdsa
+		else
+	  	  certbot certonly --standalone -d $yuming --email your@email.com --agree-tos --no-eff-email --force-renewal
+		fi
+
 	  fi
 
 	  cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/web/certs/${yuming}_cert.pem > /dev/null 2>&1
 	  cp /etc/letsencrypt/live/$yuming/privkey.pem /home/web/certs/${yuming}_key.pem > /dev/null 2>&1
+
 	  docker start nginx > /dev/null 2>&1
 }
 
@@ -1224,8 +1229,7 @@ phpmyadmin_upgrade() {
   echo "用户名: $dbuse"
   echo "密码: $dbusepasswd"
   echo
-  send_stats "更新$ldnmp_pods"
-  echo "更新${ldnmp_pods}完成"
+  send_stats "启动$ldnmp_pods"
 }
 
 
@@ -1334,11 +1338,11 @@ web_del() {
 
 		# 将域名转换为数据库名
 		dbname=$(echo "$yuming" | sed -e 's/[^A-Za-z0-9]/_/g')
-		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]' > /dev/null 2>&1)
+		dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose.yml | tr -d '[:space:]')
 
 		# 删除数据库前检查是否存在，避免报错
 		echo "正在删除数据库: $dbname"
-		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE IF EXISTS \`$dbname\`;" 2> /dev/null
+		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE ${dbname};" > /dev/null 2>&1
 	done
 
 	docker restart nginx
@@ -1944,6 +1948,7 @@ ldnmp_web_status() {
 				;;
 			10)
 				web_del
+
 				;;
 			0)
 				break  # 跳出循环，退出菜单
