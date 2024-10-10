@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.2.0"
+sh_v="3.2.1"
 
 
 gl_hui='\e[37m'
@@ -13,7 +13,7 @@ gl_kjlan='\033[96m'
 
 
 
-country="default"
+country="CN"
 cn_yuan() {
 if [ "$country" = "CN" ]; then
 	zhushi=0
@@ -1031,8 +1031,6 @@ install_ssltls() {
 	  iptables_open > /dev/null 2>&1
 	  cd ~
 	  echo -e "${gl_huang}正在申请域名证书...${gl_bai}"
-	  yes | certbot delete --cert-name $yuming > /dev/null 2>&1
-
 	  certbot_version=$(certbot --version 2>&1 | grep -oP "\d+\.\d+\.\d+")
 
 	  version_ge() {
@@ -1226,8 +1224,7 @@ phpmyadmin_upgrade() {
   echo "用户名: $dbuse"
   echo "密码: $dbusepasswd"
   echo
-  send_stats "更新$ldnmp_pods"
-  echo "更新${ldnmp_pods}完成"
+  send_stats "启动$ldnmp_pods"
 }
 
 
@@ -1832,12 +1829,13 @@ ldnmp_web_status() {
 		echo ""
 		echo "操作"
 		echo "------------------------"
-		echo "1. 申请/更新域名证书               2. 更换站点域名"
-		echo "3. 清理站点缓存                    4. 查看站点分析报告"
-		echo "5. 查看访问日志                    6. 查看错误日志"
-		echo "7. 编辑全局配置                    8. 编辑站点配置"
+		echo "1.  申请/更新域名证书               2.  更换站点域名"
+		echo "3.  清理站点缓存                    4.  查看站点分析报告"
+		echo "5.  查看访问日志                    6.  查看错误日志"
+		echo "7.  编辑全局配置                    8.  编辑站点配置"
+		echo "9.  管理站点数据库"
 		echo "------------------------"
-		echo "9. 删除指定站点数据"
+		echo "10. 删除指定站点数据"
 		echo "------------------------"
 		echo "0. 返回上一级选单"
 		echo "------------------------"
@@ -1847,6 +1845,7 @@ ldnmp_web_status() {
 				send_stats "申请域名证书"
 				read -e -p "请输入你的域名: " yuming
 				install_certbot
+				yes | certbot delete --cert-name $yuming > /dev/null 2>&1
 				install_ssltls
 				certs_status
 
@@ -1939,6 +1938,10 @@ ldnmp_web_status() {
 				docker restart nginx
 				;;
 			9)
+				phpmyadmin_upgrade
+				break_end
+				;;
+			10)
 				web_del
 				;;
 			0)
@@ -5227,24 +5230,14 @@ linux_ldnmp() {
 
 		else
 			clear
-			install_docker
-
-
-			wget -O /home/web/nginx.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
-			wget -O /home/web/conf.d/default.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
-			default_server_ssl
-			nginx_upgrade
-
 			f2b_install_sshd
 			cd /path/to/fail2ban/config/fail2ban/filter.d
 			curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/fail2ban-nginx-cc.conf
 			cd /path/to/fail2ban/config/fail2ban/jail.d/
 			curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
 			sed -i "/cloudflare/d" /path/to/fail2ban/config/fail2ban/jail.d/nginx-docker-cc.conf
-
 			f2b_status
 			cd ~
-
 			echo "防御程序已开启"
 		fi
 	  break_end
@@ -5347,7 +5340,7 @@ linux_ldnmp() {
 		  ldnmp_v
 		  echo "1. 更新nginx               2. 更新mysql              3. 更新php              4. 更新redis"
 		  echo "------------------------"
-		  echo "5. 更新完整环境            6. 更新phpmyadmin"
+		  echo "5. 更新完整环境"
 		  echo "------------------------"
 		  echo "0. 返回上一级"
 		  echo "------------------------"
@@ -5462,11 +5455,6 @@ linux_ldnmp() {
 					;;
 				esac
 				  ;;
-
-			  6)
-			  phpmyadmin_upgrade
-				  ;;
-
 			  0)
 				  break
 				  ;;
