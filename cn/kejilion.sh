@@ -1354,8 +1354,9 @@ web_del() {
 nginx_waf() {
 	mode=$1
 
-	# 下载新的 nginx.conf
-	wget -O /home/web/nginx.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
+	if ! grep -q "kjlion/nginx:alpine" /home/web/docker-compose.yml; then
+		wget -O /home/web/nginx.conf "${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf"
+	fi
 
 	# 根据 mode 参数来决定开启或关闭 WAF
 	if [ "$mode" == "on" ]; then
@@ -1383,8 +1384,26 @@ nginx_waf() {
 
 }
 
+check_waf_status() {
+	# 检查 modsecurity 是否被注释
+	if grep -q "^\s*#\s*modsecurity on;" /home/web/nginx.conf; then
+		waf_status=""
+	elif grep -q "modsecurity on;" /home/web/nginx.conf; then
+		waf_status="WAF已开启"
+	else
+		waf_status=""
+	fi
+}
 
 
+check_cf_mode() {
+	local message  # 定义局部变量 message
+	if [ -f "/path/to/fail2ban/config/fail2ban/action.d/cloudflare-docker.conf" ]; then
+		CFmessage="cf模式已开启"
+	else
+		CFmessage=""
+	fi
+}
 
 
 
@@ -5101,10 +5120,11 @@ linux_ldnmp() {
 	35)
 	  send_stats "LDNMP环境防御"
 	  while true; do
+		check_waf_status
+		check_cf_mode
 		if docker inspect fail2ban &>/dev/null ; then
-
 			  clear
-			  echo "服务器防御程序已启动"
+			  echo -e "服务器防御程序已启动 ${gl_lv}${CFmessage} ${waf_status}${gl_bai}"
 			  echo "------------------------"
 			  echo "1. 开启SSH防暴力破解              2. 关闭SSH防暴力破解"
 			  echo "3. 开启网站保护                   4. 关闭网站保护"
@@ -5346,6 +5366,8 @@ linux_ldnmp() {
 				  docker exec -it redis redis-cli CONFIG SET maxmemory 512mb
 				  docker exec -it redis redis-cli CONFIG SET maxmemory-policy allkeys-lru
 
+				  optimize_balanced
+
 				  echo "LDNMP环境已设置成 标准模式"
 
 					  ;;
@@ -5375,6 +5397,8 @@ linux_ldnmp() {
 
 				  docker exec -it redis redis-cli CONFIG SET maxmemory 1024mb
 				  docker exec -it redis redis-cli CONFIG SET maxmemory-policy allkeys-lru
+
+				  optimize_web_server
 
 				  echo "LDNMP环境已设置成 高性能模式"
 
