@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.3.0"
+sh_v="3.3.1"
 
 
 gl_hui='\e[37m'
@@ -42,7 +42,7 @@ permission_granted="false"
 
 CheckFirstRun_true() {
 	if grep -q '^permission_granted="true"' /usr/local/bin/k > /dev/null 2>&1; then
-		sed -i 's/^permission_granted="false"/permission_granted="true"/' ./kejilion.sh
+		sed -i 's/^permission_granted="false"/permission_granted="true"/' ~/kejilion.sh
 		sed -i 's/^permission_granted="false"/permission_granted="true"/' /usr/local/bin/k
 	fi
 }
@@ -92,7 +92,7 @@ fi
 yinsiyuanquan2() {
 
 if grep -q '^ENABLE_STATS="false"' /usr/local/bin/k > /dev/null 2>&1; then
-	sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ./kejilion.sh
+	sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ~/kejilion.sh
 	sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' /usr/local/bin/k
 fi
 
@@ -101,7 +101,8 @@ fi
 
 
 yinsiyuanquan2
-cp -f ./kejilion.sh /usr/local/bin/k > /dev/null 2>&1
+cp -f ./kejilion.sh ~/kejilion.sh > /dev/null 2>&1
+cp -f ~/kejilion.sh /usr/local/bin/k > /dev/null 2>&1
 
 
 
@@ -123,7 +124,7 @@ UserLicenseAgreement() {
 
 	if [ "$user_input" = "y" ] || [ "$user_input" = "Y" ]; then
 		send_stats "许可同意"
-		sed -i 's/^permission_granted="false"/permission_granted="true"/' ./kejilion.sh
+		sed -i 's/^permission_granted="false"/permission_granted="true"/' ~/kejilion.sh
 		sed -i 's/^permission_granted="false"/permission_granted="true"/' /usr/local/bin/k
 	else
 		send_stats "许可拒绝"
@@ -2426,6 +2427,7 @@ dd_xitong() {
 			echo "41. Windows 11                42. Windows 10"
 			echo "43. Windows 7                 44. Windows Server 2022"
 			echo "45. Windows Server 2019       46. Windows Server 2016"
+			echo "47. Windows 11 ARM"
 			echo "------------------------"
 			echo "0. 返回上一级选单"
 			echo "------------------------"
@@ -2651,6 +2653,15 @@ dd_xitong() {
 				reboot
 				exit
 				;;
+
+			  47)
+				send_stats "重装windows11 ARM"
+				dd_xitong_4
+				bash reinstall.sh dd --img https://r2.hotdog.eu.org/win11-arm-with-pagefile-15g.xz
+				reboot
+				exit
+				;;
+
 			  0)
 				break
 				;;
@@ -8489,14 +8500,14 @@ EOF
 				  1)
 					  cd ~
 					  sed -i 's/^ENABLE_STATS="false"/ENABLE_STATS="true"/' /usr/local/bin/k
-					  sed -i 's/^ENABLE_STATS="false"/ENABLE_STATS="true"/' ./kejilion.sh
+					  sed -i 's/^ENABLE_STATS="false"/ENABLE_STATS="true"/' ~/kejilion.sh
 					  echo "已开启采集"
 					  send_stats "隐私与安全已开启采集"
 					  ;;
 				  2)
 					  cd ~
 					  sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' /usr/local/bin/k
-					  sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ./kejilion.sh
+					  sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ~/kejilion.sh
 					  echo "已关闭采集"
 					  send_stats "隐私与安全已关闭采集"
 					  ;;
@@ -8522,7 +8533,7 @@ EOF
 				[Yy])
 				  clear
 				  rm -f /usr/local/bin/k
-				  rm ./kejilion.sh
+				  rm ~/kejilion.sh
 				  echo "脚本已卸载，再见！"
 				  break_end
 				  clear
@@ -8988,11 +8999,11 @@ kejilion_update() {
 				fi
 				CheckFirstRun_true
 				yinsiyuanquan2
-				cp -f ./kejilion.sh /usr/local/bin/k > /dev/null 2>&1
+				cp -f ~/kejilion.sh /usr/local/bin/k > /dev/null 2>&1
 				echo -e "${gl_lv}脚本已更新到最新版本！${gl_huang}v$sh_v_new${gl_bai}"
 				send_stats "脚本已经最新$sh_v_new"
 				break_end
-				./kejilion.sh
+				~/kejilion.sh
 				exit
 				;;
 			[Nn])
