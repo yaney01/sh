@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.4.2"
+sh_v="3.4.3"
 
 
 gl_hui='\e[37m'
@@ -306,7 +306,7 @@ kejilion() {
 
 
 check_port() {
-	k add lsof
+	install lsof
 	local containers=$(docker ps --filter "publish=443" --format "{{.ID}} " 2>/dev/null)
 	if [ -n "$containers" ] ; then
 		docker stop $containers
@@ -331,6 +331,11 @@ EOF
 
 fi
 
+
+enable docker
+start docker
+restart docker
+
 }
 
 
@@ -341,13 +346,11 @@ if [ "$country" = "CN" ]; then
 	curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/install && chmod +x install
 	sh install --mirror Aliyun
 	rm -f install
-
 else
 	curl -fsSL https://get.docker.com | sh
 fi
 install_add_docker_cn
-k enable docker
-k start docker
+
 
 }
 
@@ -370,8 +373,6 @@ install_add_docker() {
 		fi
 		dnf install -y docker-ce docker-ce-cli containerd.io
 		install_add_docker_cn
-		k enable docker
-		k start docker
 
 	elif [ -f /etc/os-release ] && grep -q "Kali" /etc/os-release; then
 		apt update
@@ -408,16 +409,14 @@ install_add_docker() {
 		apt update
 		apt install -y docker-ce docker-ce-cli containerd.io
 		install_add_docker_cn
-		k enable docker
-		k start docker
+
 
 	elif command -v apt &>/dev/null || command -v yum &>/dev/null; then
 		install_add_docker_guanfang
 	else
-		k install docker docker-compose
+		install docker docker-compose
 		install_add_docker_cn
-		k enable docker
-		k start docker
+
 	fi
 	sleep 2
 }
@@ -695,7 +694,7 @@ docker_ipv6_on() {
 	# 检查配置文件是否存在，如果不存在则创建文件并写入默认设置
 	if [ ! -f "$CONFIG_FILE" ]; then
 		echo "$REQUIRED_IPV6_CONFIG" | jq . > "$CONFIG_FILE"
-		k restart docker
+		restart docker
 	else
 		# 使用jq处理配置文件的更新
 		local ORIGINAL_CONFIG=$(<"$CONFIG_FILE")
@@ -715,7 +714,7 @@ docker_ipv6_on() {
 			echo -e "${gl_huang}当前已开启ipv6访问${gl_bai}"
 		else
 			echo "$UPDATED_CONFIG" | jq . > "$CONFIG_FILE"
-			k restart docker
+			restart docker
 		fi
 	fi
 }
@@ -747,7 +746,7 @@ docker_ipv6_off() {
 		echo -e "${gl_huang}当前已关闭ipv6访问${gl_bai}"
 	else
 		echo "$UPDATED_CONFIG" | jq . > "$CONFIG_FILE"
-		k restart docker
+		restart docker
 		echo -e "${gl_huang}已成功关闭ipv6访问${gl_bai}"
 	fi
 }
@@ -1437,7 +1436,7 @@ while true; do
 			echo "${docker_name}域名访问设置"
 			send_stats "${docker_name}域名访问设置"
 			add_yuming
-			k fd ${yuming} ${ipv4_address} ${docker_port}
+			ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 			;;
 		*)
 			break
@@ -3464,7 +3463,7 @@ linux_trash() {
 
 	case $choice in
 	  1)
-		k add trash-cli
+		install trash-cli
 		sed -i '/alias rm/d' "$bashrc_profile"
 		echo "alias rm='trash-put'" >> "$bashrc_profile"
 		source "$bashrc_profile"
@@ -3472,7 +3471,7 @@ linux_trash() {
 		sleep 2
 		;;
 	  2)
-		k del trash-cli
+		remove trash-cli
 		sed -i '/alias rm/d' "$bashrc_profile"
 		echo "alias rm='rm -i'" >> "$bashrc_profile"
 		source "$bashrc_profile"
@@ -4171,7 +4170,7 @@ linux_docker() {
 			  case "$choice" in
 				[Yy])
 				  docker ps -a -q | xargs -r docker rm -f && docker images -q | xargs -r docker rmi && docker network prune -f && docker volume prune -f
-				  k remove docker docker-compose docker-ce docker-ce-cli containerd.io
+				  remove docker docker-compose docker-ce docker-ce-cli containerd.io
 				  rm -f /etc/docker/daemon.json
 				  hash -r
 				  ;;
@@ -4787,6 +4786,13 @@ linux_ldnmp() {
 	  docker exec php composer create-project flarum/flarum /var/www/html/$yuming
 	  docker exec php sh -c "cd /var/www/html/$yuming && composer require flarum-lang/chinese-simplified"
 	  docker exec php sh -c "cd /var/www/html/$yuming && composer require fof/polls"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require fof/sitemap"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require fof/oauth"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require fof/best-answer:*"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require v17development/flarum-seo"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require rehiy/flarum-reply-to-see:*"
+	  docker exec php sh -c "cd /var/www/html/$yuming && composer require clarkwinkelmann/flarum-ext-emojionearea"
+
 
 	  restart_ldnmp
 
@@ -6178,7 +6184,7 @@ linux_panel() {
 						echo "${docker_name}域名访问设置"
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
-						k fd ${yuming} ${ipv4_address} ${docker_port}
+						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
 
 					0)
@@ -6305,7 +6311,7 @@ linux_panel() {
 						echo "${docker_name}域名访问设置"
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
-						k fd ${yuming} ${ipv4_address} ${docker_port}
+						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
 
 					0)
@@ -6991,7 +6997,7 @@ linux_panel() {
 						echo "${docker_name}域名访问设置"
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
-						k fd ${yuming} ${ipv4_address} ${docker_port}
+						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
 
 					*)
@@ -8450,39 +8456,8 @@ EOF
 		  41)
 			clear
 			send_stats "留言板"
-			install sshpass
-			while true; do
-			  local remote_ip="66.42.61.110"
-			  local remote_user="liaotian123"
-			  local remote_file="/home/liaotian123/liaotian.txt"
-			  local password="kejilionYYDSCC"  # 替换为您的密码
-
-			  clear
-			  echo "科技lion留言板"
-			  echo "------------------------"
-			  # 显示已有的留言内容
-			  sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "cat '${remote_file}'"
-			  echo ""
-			  echo "------------------------"
-
-			  # 判断是否要留言
-			  read -e -p "是否要留言？(y/n): " leave_message
-
-			  if [ "$leave_message" == "y" ] || [ "$leave_message" == "Y" ]; then
-				  # 输入新的留言内容
-				  read -e -p "输入你的昵称: " nicheng
-				  read -e -p "输入你的聊天内容: " neirong
-
-				  # 添加新留言到远程文件
-				  sshpass -p "${password}" ssh -o StrictHostKeyChecking=no "${remote_user}@${remote_ip}" "echo -e '${nicheng}: ${neirong}' >> '${remote_file}'"
-				  echo "已添加留言: "
-				  echo "${nicheng}: ${neirong}"
-			  else
-				  echo "退出留言板"
-				  break
-			  fi
-			break_end
-			done
+			echo "科技lion留言板已迁移至官方社区！请在官方社区进行留言噢！"
+			echo "https://bbs.kejilion.pro/"
 			  ;;
 
 		  66)
