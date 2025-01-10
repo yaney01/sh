@@ -2158,6 +2158,8 @@ EOF
 	install tmux
 	tmux kill-session -t frps >/dev/null 2>&1
 	tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
+	crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
+	(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
 
 }
 
@@ -2176,19 +2178,22 @@ configure_frpc() {
 server_addr = ${server_addr}
 server_port = 8055
 token = ${token}
+
 EOF
 
 	install tmux
 	tmux kill-session -t frpc >/dev/null 2>&1
 	tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
-
+	crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
+	(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
 
 }
 
 add_forwarding_service() {
 	# 提示用户输入服务名称和转发信息
 	read -e -p "请输入服务名称: " service_name
-	read -e -p "请输入转发类型 (tcp/udp): " service_type
+	read -e -p "请输入转发类型 (tcp/udp) [回车默认tcp]: " service_type
+	service_type=${service_type:-tcp}
 	read -e -p "请输入内网端口: " local_port
 	read -e -p "请输入外网端口: " remote_port
 
@@ -2199,6 +2204,7 @@ type = ${service_type}
 local_ip = 127.0.0.1
 local_port = ${local_port}
 remote_port = ${remote_port}
+
 EOF
 
 	# 输出生成的信息
@@ -7346,10 +7352,17 @@ linux_panel() {
 						echo "FRP服务端已经安装完成"
 						;;
 					2)
-						generate_frps_config
+						cp -f /home/frp/frp_0.61.0_linux_amd64/frps.toml /home/frp/frps.toml
+						donlond_frp
+						cp -f /home/frp/frps.toml /home/frp/frp_0.61.0_linux_amd64/frps.toml
+						tmux kill-session -t frps >/dev/null 2>&1
+						tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
+						crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
+						(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
 						echo "FRP服务端已经更新完成"
 						;;
 					3)
+						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
 						tmux kill-session -t frps >/dev/null 2>&1
 						rm -rf /home/frp
 						echo "应用已卸载"
@@ -7397,12 +7410,18 @@ linux_panel() {
 						echo "FRP客户端已经安装完成"
 						;;
 					2)
-						configure_frpc
+						cp -f /home/frp/frp_0.61.0_linux_amd64/frpc.toml /home/frp/frpc.toml
+						donlond_frp
+						cp -f /home/frp/frpc.toml /home/frp/frp_0.61.0_linux_amd64/frpc.toml
+						tmux kill-session -t frpc >/dev/null 2>&1
+						tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
+						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
+						(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
 						echo "FRP客户端已经更新完成"
 						;;
 
-
 					3)
+						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
 						tmux kill-session -t frpc >/dev/null 2>&1
 						rm -rf /home/frp
 						echo "应用已卸载"
