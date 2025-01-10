@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.5.10"
+sh_v="3.6.0"
 
 
 gl_hui='\e[37m'
@@ -2145,6 +2145,7 @@ EOF
 
 	# 输出生成的信息
 	ip_address
+	echo "------------------------"
 	echo "客户端部署时需要用的参数"
 	echo "服务IP: $ipv4_address"
 	echo "token: $token"
@@ -2154,7 +2155,7 @@ EOF
 	echo "FRP面板用户名: $dashboard_user"
 	echo "FRP面板密码: $dashboard_pwd"
 	echo
-
+	echo "------------------------"
 	install tmux
 	tmux kill-session -t frps >/dev/null 2>&1
 	tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
@@ -2208,7 +2209,7 @@ remote_port = ${remote_port}
 EOF
 
 	# 输出生成的信息
-	echo "服务 \$service_name 已成功添加到 frpc.toml"
+	echo "服务 $service_name 已成功添加到 frpc.toml"
 
 	tmux kill-session -t frpc >/dev/null 2>&1
 	tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
@@ -2222,7 +2223,7 @@ delete_forwarding_service() {
 	read -e -p "请输入需要删除的服务名称: " service_name
 	# 使用 sed 删除该服务及其相关配置
 	sed -i "/\[$service_name\]/,/^$/d" /home/frp/frp_0.61.0_linux_amd64/frpc.toml
-	echo "服务 \$service_name 已成功从 frpc.toml 删除"
+	echo "服务 $service_name 已成功从 frpc.toml 删除"
 
 	tmux kill-session -t frpc >/dev/null 2>&1
 	tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
@@ -2308,6 +2309,131 @@ list_forwarding_services() {
 }
 
 
+
+frps_panel() {
+	send_stats "FRP服务端"
+	local docker_port=8056
+	while true; do
+		clear
+		check_frp_app
+		echo -e "FRP服务端 $check_frp"
+		echo "构建FRP内网穿透服务环境"
+		echo "官网介绍: https://github.com/fatedier/frp/"
+		if [ -d "/home/frp/" ]; then
+			check_docker_app_ip
+		fi
+		echo ""
+		echo "------------------------"
+		echo "1. 安装           2. 更新           3. 卸载"
+		echo "------------------------"
+		echo "5. 域名访问"
+		echo "------------------------"
+		echo "0. 返回上一级"
+		echo "------------------------"
+		read -e -p "输入你的选择: " choice
+		case $choice in
+			1)
+				generate_frps_config
+				echo "FRP服务端已经安装完成"
+				;;
+			2)
+				cp -f /home/frp/frp_0.61.0_linux_amd64/frps.toml /home/frp/frps.toml
+				donlond_frp
+				cp -f /home/frp/frps.toml /home/frp/frp_0.61.0_linux_amd64/frps.toml
+				tmux kill-session -t frps >/dev/null 2>&1
+				tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
+				crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
+				(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
+				echo "FRP服务端已经更新完成"
+				;;
+			3)
+				crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
+				tmux kill-session -t frps >/dev/null 2>&1
+				rm -rf /home/frp
+				echo "应用已卸载"
+				;;
+			5)
+				echo "${docker_name}域名访问设置"
+				send_stats "${docker_name}域名访问设置"
+				add_yuming
+				ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+				;;
+			*)
+				break
+				;;
+		esac
+		break_end
+	done
+}
+
+
+frpc_panel() {
+	send_stats "FRP客户端"
+	local docker_port=8055
+	while true; do
+		clear
+		check_frp_app
+		echo -e "FRP客户端 $check_frp"
+		echo "与服务端对接，对接后可创建内网穿透转发服务"
+		echo "官网介绍: https://github.com/fatedier/frp/"
+		echo "------------------------"
+		if [ -d "/home/frp/" ]; then
+			list_forwarding_services "/home/frp/frp_0.61.0_linux_amd64/frpc.toml"
+		fi
+		echo ""
+		echo "------------------------"
+		echo "1. 安装               2. 更新               3. 卸载"
+		echo "------------------------"
+		echo "4. 添加对外服务       5. 删除对外服务       6. 手动配置服务"
+		echo "------------------------"
+		echo "0. 返回上一级"
+		echo "------------------------"
+		read -e -p "输入你的选择: " choice
+		case $choice in
+			1)
+				configure_frpc
+				echo "FRP客户端已经安装完成"
+				;;
+			2)
+				cp -f /home/frp/frp_0.61.0_linux_amd64/frpc.toml /home/frp/frpc.toml
+				donlond_frp
+				cp -f /home/frp/frpc.toml /home/frp/frp_0.61.0_linux_amd64/frpc.toml
+				tmux kill-session -t frpc >/dev/null 2>&1
+				tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
+				crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
+				(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
+				echo "FRP客户端已经更新完成"
+				;;
+
+			3)
+				crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
+				tmux kill-session -t frpc >/dev/null 2>&1
+				rm -rf /home/frp
+				echo "应用已卸载"
+				;;
+
+			4)
+				add_forwarding_service
+				;;
+
+			5)
+				delete_forwarding_service
+				;;
+
+			6)
+				install nano
+				nano /home/frp/frp_0.61.0_linux_amd64/frpc.toml
+				tmux kill-session -t frpc >/dev/null 2>&1
+				tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
+				;;
+
+			*)
+				break
+				;;
+		esac
+		break_end
+	done
+}
 
 
 
@@ -3064,7 +3190,8 @@ elrepo_install() {
 	fi
 	# 启用 ELRepo 内核仓库并安装最新的主线内核
 	echo "启用 ELRepo 内核仓库并安装最新的主线内核..."
-	yum -y --enablerepo=elrepo-kernel install kernel-ml
+	# yum -y --enablerepo=elrepo-kernel install kernel-ml
+	yum --nogpgcheck -y --enablerepo=elrepo-kernel install kernel-ml
 	echo "已安装 ELRepo 仓库配置并更新到最新主线内核。"
 	server_reboot
 
@@ -7326,128 +7453,11 @@ linux_panel() {
 			  ;;
 
 		  55)
-			send_stats "FRP服务端"
-			local docker_port=8056
-			while true; do
-				clear
-				check_frp_app
-				echo -e "FRP服务端 $check_frp"
-				echo "构建FRP内网穿透服务环境"
-				echo "官网介绍: https://github.com/fatedier/frp/"
-				if [ -d "/home/frp/" ]; then
-					check_docker_app_ip
-				fi
-				echo ""
-				echo "------------------------"
-				echo "1. 安装           2. 更新           3. 卸载"
-				echo "------------------------"
-				echo "5. 域名访问"
-				echo "------------------------"
-				echo "0. 返回上一级"
-				echo "------------------------"
-				read -e -p "输入你的选择: " choice
-				case $choice in
-					1)
-						generate_frps_config
-						echo "FRP服务端已经安装完成"
-						;;
-					2)
-						cp -f /home/frp/frp_0.61.0_linux_amd64/frps.toml /home/frp/frps.toml
-						donlond_frp
-						cp -f /home/frp/frps.toml /home/frp/frp_0.61.0_linux_amd64/frps.toml
-						tmux kill-session -t frps >/dev/null 2>&1
-						tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
-						crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
-						(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
-						echo "FRP服务端已经更新完成"
-						;;
-					3)
-						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
-						tmux kill-session -t frps >/dev/null 2>&1
-						rm -rf /home/frp
-						echo "应用已卸载"
-						;;
-					5)
-						echo "${docker_name}域名访问设置"
-						send_stats "${docker_name}域名访问设置"
-						add_yuming
-						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
-						;;
-					*)
-						break
-						;;
-				esac
-				break_end
-			done
-
+		  	frps_panel
 			  ;;
 
 		  56)
-			send_stats "FRP客户端"
-			local docker_port=8055
-			while true; do
-				clear
-				check_frp_app
-				echo -e "FRP客户端 $check_frp"
-				echo "与服务端对接，对接后可创建内网穿透转发服务"
-				echo "官网介绍: https://github.com/fatedier/frp/"
-				echo "------------------------"
-				if [ -d "/home/frp/" ]; then
-					list_forwarding_services "/home/frp/frp_0.61.0_linux_amd64/frpc.toml"
-				fi
-				echo ""
-				echo "------------------------"
-				echo "1. 安装               2. 更新               3. 卸载"
-				echo "------------------------"
-				echo "4. 添加对外服务       5. 删除对外服务       6. 手动配置服务"
-				echo "------------------------"
-				echo "0. 返回上一级"
-				echo "------------------------"
-				read -e -p "输入你的选择: " choice
-				case $choice in
-					1)
-						configure_frpc
-						echo "FRP客户端已经安装完成"
-						;;
-					2)
-						cp -f /home/frp/frp_0.61.0_linux_amd64/frpc.toml /home/frp/frpc.toml
-						donlond_frp
-						cp -f /home/frp/frpc.toml /home/frp/frp_0.61.0_linux_amd64/frpc.toml
-						tmux kill-session -t frpc >/dev/null 2>&1
-						tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
-						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
-						(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
-						echo "FRP客户端已经更新完成"
-						;;
-
-					3)
-						crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
-						tmux kill-session -t frpc >/dev/null 2>&1
-						rm -rf /home/frp
-						echo "应用已卸载"
-						;;
-
-					4)
-						add_forwarding_service
-						;;
-
-					5)
-						delete_forwarding_service
-						;;
-
-					6)
-						install nano
-						nano /home/frp/frp_0.61.0_linux_amd64/frpc.toml
-						tmux kill-session -t frpc >/dev/null 2>&1
-						tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
-						;;
-
-					*)
-						break
-						;;
-				esac
-				break_end
-			done
+			frpc_panel
 			  ;;
 
 
@@ -9556,6 +9566,8 @@ echo "打开内核调优面板    k nhyh | k 内核优化"
 echo "设置虚拟内存        k swap 2048"
 echo "设置虚拟时区        k time Asia/Shanghai | k 时区 Asia/Shanghai"
 echo "打开系统回收站      k trash | k hsz | k 回收站"
+echo "内网穿透（服务端）  k frps"
+echo "内网穿透（客户端）  k frpc"
 echo "软件启动            k start sshd | k 启动 sshd "
 echo "软件停止            k stop sshd | k 停止 sshd "
 echo "软件重启            k restart sshd | k 重启 sshd "
@@ -9635,6 +9647,17 @@ else
 		iptables_open)
 			iptables_open
 			;;
+
+		frps)
+			frps_panel
+			;;
+
+		frpc)
+			frpc_panel
+			;;
+
+
+
 
 		status|状态)
 			shift
