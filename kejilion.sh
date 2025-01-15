@@ -5107,6 +5107,8 @@ linux_ldnmp() {
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
+	  docker exec php rm -f /usr/local/etc/php/conf.d/optimized_php.ini
+
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
@@ -9326,7 +9328,7 @@ fi
 while true; do
 	  clear
 	  send_stats "集群控制中心"
-	  echo "集群服务器列表"
+	  echo "▶ 服务器集群控制"
 	  cat ~/cluster/servers.py
 	  echo
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
