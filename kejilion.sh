@@ -27,7 +27,7 @@ elif [ "$canshu" = "V6" ]; then
 	gh_proxy="https://gh.kejilion.pro/"
 else
 	zhushi=1  # 0 表示执行，1 表示不执行
-	gh_proxy=""
+	gh_proxy="https://"
 fi
 
 }
@@ -345,7 +345,7 @@ install_add_docker_guanfang() {
 local country=$(curl -s ipinfo.io/country)
 if [ "$country" = "CN" ]; then
 	cd ~
-	curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/install && chmod +x install
+	curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/install && chmod +x install
 	sh install --mirror Aliyun
 	rm -f install
 else
@@ -854,13 +854,13 @@ install_ldnmp_conf() {
 
   # 创建必要的目录和文件
   cd /home && mkdir -p web/html web/mysql web/certs web/conf.d web/redis web/log/nginx && touch web/docker-compose.yml
-  wget -O /home/web/nginx.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
-  wget -O /home/web/conf.d/default.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/default10.conf
+  wget -O /home/web/nginx.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf
+  wget -O /home/web/conf.d/default.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/default10.conf
 
   default_server_ssl
 
   # 下载 docker-compose.yml 文件并进行替换
-  wget -O /home/web/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+  wget -O /home/web/docker-compose.yml ${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
   dbrootpasswd=$(openssl rand -base64 16) ; dbuse=$(openssl rand -hex 4) ; dbusepasswd=$(openssl rand -base64 8)
 
   # 在 docker-compose.yml 文件中进行替换
@@ -881,7 +881,7 @@ install_ldnmp() {
 	  cp /home/web/docker-compose.yml /home/web/docker-compose1.yml
 
 	  if ! grep -q "healthcheck" /home/web/docker-compose.yml; then
-		wget -O /home/web/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
+		wget -O /home/web/docker-compose.yml ${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/LNMP-docker-compose-10.yml
 	  	dbrootpasswd=$(grep -oP 'MYSQL_ROOT_PASSWORD:\s*\K.*' /home/web/docker-compose1.yml | tr -d '[:space:]')
 	  	dbuse=$(grep -oP 'MYSQL_USER:\s*\K.*' /home/web/docker-compose1.yml | tr -d '[:space:]')
 	  	dbusepasswd=$(grep -oP 'MYSQL_PASSWORD:\s*\K.*' /home/web/docker-compose1.yml | tr -d '[:space:]')
@@ -913,7 +913,7 @@ install_ldnmp() {
 install_certbot() {
 
 	cd ~
-	curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
+	curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
 	chmod +x auto_cert_renewal.sh
 
 	check_crontab_installed
@@ -1076,7 +1076,7 @@ add_db() {
 
 reverse_proxy() {
 	  ip_address
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
 	  sed -i "s|0000|$duankou|g" /home/web/conf.d/$yuming.conf
@@ -1241,7 +1241,7 @@ nginx_waf() {
 	local mode=$1
 
 	if ! grep -q "kjlion/nginx:alpine" /home/web/docker-compose.yml; then
-		wget -O /home/web/nginx.conf "${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf"
+		wget -O /home/web/nginx.conf "${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/nginx10.conf"
 	fi
 
 	# 根据 mode 参数来决定开启或关闭 WAF
@@ -1488,7 +1488,7 @@ mkdir -p $GRAFANA_DIR
 chown -R 472:472 $GRAFANA_DIR
 
 if [ ! -f "$PROMETHEUS_DIR/prometheus.yml" ]; then
-	curl -o "$PROMETHEUS_DIR/prometheus.yml" ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/refs/heads/main/prometheus/prometheus.yml
+	curl -o "$PROMETHEUS_DIR/prometheus.yml" ${gh_proxy}raw.githubusercontent.com/kejilion/config/refs/heads/main/prometheus/prometheus.yml
 fi
 
 # Create Docker network for monitoring
@@ -1592,19 +1592,19 @@ f2b_install_sshd() {
 	sleep 3
 	if grep -q 'Alpine' /etc/issue; then
 		cd /path/to/fail2ban/config/fail2ban/filter.d
-		curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd.conf
-		curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd-ddos.conf
+		curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd.conf
+		curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-sshd-ddos.conf
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-ssh.conf
+		curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/alpine-ssh.conf
 	elif command -v dnf &>/dev/null; then
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/centos-ssh.conf
+		curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/centos-ssh.conf
 	else
 		install rsyslog
 		systemctl start rsyslog
 		systemctl enable rsyslog
 		cd /path/to/fail2ban/config/fail2ban/jail.d/
-		curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/linux-ssh.conf
+		curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/linux-ssh.conf
 	fi
 }
 
@@ -1772,14 +1772,14 @@ ldnmp_wp() {
   install_ssltls
   certs_status
   add_db
-  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/wordpress.com.conf
+  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/wordpress.com.conf
   sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
   nginx_http_on
 
   cd /home/web/html
   mkdir $yuming
   cd $yuming
-  wget -O latest.zip ${gh_proxy}https://github.com/kejilion/Website_source_code/raw/refs/heads/main/wp-latest.zip
+  wget -O latest.zip ${gh_proxy}github.com/kejilion/Website_source_code/raw/refs/heads/main/wp-latest.zip
   # wget -O latest.zip https://cn.wordpress.org/latest-zh_CN.zip
   # wget -O latest.zip https://wordpress.org/latest.zip
   unzip latest.zip
@@ -1824,7 +1824,7 @@ ldnmp_Proxy() {
 	nginx_install_status
 	install_ssltls
 	certs_status
-	wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
+	wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy.conf
 	sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 	sed -i "s|0000|$port|g" /home/web/conf.d/$yuming.conf
@@ -2111,7 +2111,7 @@ fi
 
 donlond_frp() {
 	mkdir -p /home/frp/ && cd /home/frp/
-	curl -L ${gh_proxy}https://github.com/fatedier/frp/releases/download/v0.61.0/frp_0.61.0_linux_amd64.tar.gz -o frp_0.61.0_linux_amd64.tar.gz
+	curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v0.61.0/frp_0.61.0_linux_amd64.tar.gz -o frp_0.61.0_linux_amd64.tar.gz
 	tar -zxvf frp_*.tar.gz
 }
 
@@ -2748,12 +2748,12 @@ clear
 dd_xitong() {
 		send_stats "重装系统"
 		dd_xitong_MollyLau() {
-			wget --no-check-certificate -qO InstallNET.sh "${gh_proxy}https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh" && chmod a+x InstallNET.sh
+			wget --no-check-certificate -qO InstallNET.sh "${gh_proxy}raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh" && chmod a+x InstallNET.sh
 
 		}
 
 		dd_xitong_bin456789() {
-			curl -O ${gh_proxy}https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
+			curl -O ${gh_proxy}raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh
 		}
 
 		dd_xitong_1() {
@@ -3088,13 +3088,13 @@ bbrv3() {
 						update-grub
 
 						# wget -qO - https://dl.xanmod.org/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
-						wget -qO - ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+						wget -qO - ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 						# 步骤3：添加存储库
 						echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
 						# version=$(wget -q https://dl.xanmod.org/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
-						local version=$(wget -q ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+						local version=$(wget -q ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 						apt update -y
 						apt install -y linux-xanmod-x64v$version
@@ -3150,13 +3150,13 @@ bbrv3() {
 			install wget gnupg
 
 			# wget -qO - https://dl.xanmod.org/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
-			wget -qO - ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
+			wget -qO - ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/archive.key | gpg --dearmor -o /usr/share/keyrings/xanmod-archive-keyring.gpg --yes
 
 			# 步骤3：添加存储库
 			echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | tee /etc/apt/sources.list.d/xanmod-release.list
 
 			# version=$(wget -q https://dl.xanmod.org/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
-			local version=$(wget -q ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
+			local version=$(wget -q ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/check_x86-64_psabi.sh && chmod +x check_x86-64_psabi.sh && ./check_x86-64_psabi.sh | grep -oP 'x86-64-v\K\d+|x86-64-v\d+')
 
 			apt update -y
 			apt install -y linux-xanmod-x64v$version
@@ -4392,7 +4392,7 @@ linux_bbr() {
 		done
 	else
 		install wget
-		wget --no-check-certificate -O tcpx.sh ${gh_proxy}https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
+		wget --no-check-certificate -O tcpx.sh ${gh_proxy}raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcpx.sh
 		chmod +x tcpx.sh
 		./tcpx.sh
 	fi
@@ -4733,7 +4733,7 @@ linux_test() {
 			  clear
 			  send_stats "yeahwu流媒体解锁检测"
 			  install wget
-			  wget -qO- ${gh_proxy}https://github.com/yeahwu/check/raw/main/check.sh | bash
+			  wget -qO- ${gh_proxy}github.com/yeahwu/check/raw/main/check.sh | bash
 			  ;;
 		  4)
 			  clear
@@ -4749,7 +4749,7 @@ linux_test() {
 		  12)
 			  clear
 			  send_stats "mtr_trace三网回程线路测试"
-			  curl ${gh_proxy}https://raw.githubusercontent.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
+			  curl ${gh_proxy}raw.githubusercontent.com/zhucaidan/mtr_trace/main/mtr_trace.sh | bash
 			  ;;
 		  13)
 			  clear
@@ -4792,13 +4792,13 @@ linux_test() {
 		  16)
 			  clear
 			  send_stats "ludashi2020三网线路测试"
-			  curl ${gh_proxy}https://raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh
+			  curl ${gh_proxy}raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh
 			  ;;
 
 		  17)
 			  clear
 			  send_stats "i-abc多功能测速脚本"
-			  bash <(curl -sL ${gh_proxy}https://raw.githubusercontent.com/i-abc/Speedtest/main/speedtest.sh)
+			  bash <(curl -sL ${gh_proxy}raw.githubusercontent.com/i-abc/Speedtest/main/speedtest.sh)
 			  ;;
 
 
@@ -4946,7 +4946,7 @@ linux_Oracle() {
 
 			  read -e -p "请输入你重装后的密码: " vpspasswd
 			  install wget
-			  bash <(wget --no-check-certificate -qO- "${gh_proxy}https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh") $xitong -v 64 -p $vpspasswd -port 22
+			  bash <(wget --no-check-certificate -qO- "${gh_proxy}raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh") $xitong -v 64 -p $vpspasswd -port 22
 			  send_stats "甲骨文云重装系统脚本"
 			  ;;
 			[Nn])
@@ -5079,14 +5079,14 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/discuz.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/discuz.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  wget -O latest.zip ${gh_proxy}https://github.com/kejilion/Website_source_code/raw/main/Discuz_X3.5_SC_UTF8_20240520.zip
+	  wget -O latest.zip ${gh_proxy}github.com/kejilion/Website_source_code/raw/main/Discuz_X3.5_SC_UTF8_20240520.zip
 	  unzip latest.zip
 	  rm latest.zip
 
@@ -5116,14 +5116,14 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/kdy.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/kdy.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  wget -O latest.zip ${gh_proxy}https://github.com/kalcaddle/kodbox/archive/refs/tags/1.50.02.zip
+	  wget -O latest.zip ${gh_proxy}github.com/kalcaddle/kodbox/archive/refs/tags/1.50.02.zip
 	  unzip -o latest.zip
 	  rm latest.zip
 	  mv /home/web/html/$yuming/kodbox* /home/web/html/$yuming/kodbox
@@ -5151,19 +5151,19 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/maccms.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/maccms.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  # wget ${gh_proxy}https://github.com/magicblack/maccms_down/raw/master/maccms10.zip && unzip maccms10.zip && rm maccms10.zip
-	  wget ${gh_proxy}https://github.com/magicblack/maccms_down/raw/master/maccms10.zip && unzip maccms10.zip && mv maccms10-*/* . && rm -r maccms10-* && rm maccms10.zip
-	  cd /home/web/html/$yuming/template/ && wget ${gh_proxy}https://github.com/kejilion/Website_source_code/raw/main/DYXS2.zip && unzip DYXS2.zip && rm /home/web/html/$yuming/template/DYXS2.zip
+	  # wget ${gh_proxy}github.com/magicblack/maccms_down/raw/master/maccms10.zip && unzip maccms10.zip && rm maccms10.zip
+	  wget ${gh_proxy}github.com/magicblack/maccms_down/raw/master/maccms10.zip && unzip maccms10.zip && mv maccms10-*/* . && rm -r maccms10-* && rm maccms10.zip
+	  cd /home/web/html/$yuming/template/ && wget ${gh_proxy}github.com/kejilion/Website_source_code/raw/main/DYXS2.zip && unzip DYXS2.zip && rm /home/web/html/$yuming/template/DYXS2.zip
 	  cp /home/web/html/$yuming/template/DYXS2/asset/admin/Dyxs2.php /home/web/html/$yuming/application/admin/controller
 	  cp /home/web/html/$yuming/template/DYXS2/asset/admin/dycms.html /home/web/html/$yuming/application/admin/view/system
-	  mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php ${gh_proxy}https://raw.githubusercontent.com/kejilion/Website_source_code/main/maccms.php
+	  mv /home/web/html/$yuming/admin.php /home/web/html/$yuming/vip.php && wget -O /home/web/html/$yuming/application/extra/maccms.php ${gh_proxy}raw.githubusercontent.com/kejilion/Website_source_code/main/maccms.php
 
 	  restart_ldnmp
 
@@ -5194,14 +5194,14 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/dujiaoka.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/dujiaoka.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  wget ${gh_proxy}https://github.com/assimon/dujiaoka/releases/download/2.0.6/2.0.6-antibody.tar.gz && tar -zxvf 2.0.6-antibody.tar.gz && rm 2.0.6-antibody.tar.gz
+	  wget ${gh_proxy}github.com/assimon/dujiaoka/releases/download/2.0.6/2.0.6-antibody.tar.gz && tar -zxvf 2.0.6-antibody.tar.gz && rm 2.0.6-antibody.tar.gz
 
 	  restart_ldnmp
 
@@ -5242,7 +5242,7 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/flarum.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/flarum.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
@@ -5293,14 +5293,14 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/typecho.com.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/typecho.com.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  wget -O latest.zip ${gh_proxy}https://github.com/typecho/typecho/releases/latest/download/typecho.zip
+	  wget -O latest.zip ${gh_proxy}github.com/typecho/typecho/releases/latest/download/typecho.zip
 	  unzip latest.zip
 	  rm latest.zip
 
@@ -5331,7 +5331,7 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/refs/heads/main/index_php.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/refs/heads/main/index_php.conf
 	  sed -i "s|/var/www/html/yuming.com/|/var/www/html/yuming.com/linkstack|g" /home/web/conf.d/$yuming.conf
 	  sed -i "s|yuming.com|$yuming|g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
@@ -5339,7 +5339,7 @@ linux_ldnmp() {
 	  cd /home/web/html
 	  mkdir $yuming
 	  cd $yuming
-	  wget -O latest.zip ${gh_proxy}https://github.com/linkstackorg/linkstack/releases/latest/download/linkstack.zip
+	  wget -O latest.zip ${gh_proxy}github.com/linkstackorg/linkstack/releases/latest/download/linkstack.zip
 	  unzip latest.zip
 	  rm latest.zip
 
@@ -5367,7 +5367,7 @@ linux_ldnmp() {
 	  certs_status
 	  add_db
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/index_php.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/index_php.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
@@ -5498,7 +5498,7 @@ linux_ldnmp() {
 	  install_ssltls
 	  certs_status
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/rewrite.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/rewrite.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  sed -i "s/baidu.com/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
@@ -5526,7 +5526,7 @@ linux_ldnmp() {
 	  install_ssltls
 	  certs_status
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy-domain.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/reverse-proxy-domain.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  sed -i "s|fandaicom|$fandai_yuming|g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
@@ -5589,7 +5589,7 @@ linux_ldnmp() {
 	  install_ssltls
 	  certs_status
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/html.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/html.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
@@ -5597,7 +5597,7 @@ linux_ldnmp() {
 	  mkdir $yuming
 	  cd $yuming
 
-	  wget ${gh_proxy}https://github.com/kejilion/Website_source_code/raw/refs/heads/main/ai_prompt_generator.zip
+	  wget ${gh_proxy}github.com/kejilion/Website_source_code/raw/refs/heads/main/ai_prompt_generator.zip
 	  unzip $(ls -t *.zip | head -n 1)
 	  rm -f $(ls -t *.zip | head -n 1)
 
@@ -5620,7 +5620,7 @@ linux_ldnmp() {
 	  install_ssltls
 	  certs_status
 
-	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/html.conf
+	  wget -O /home/web/conf.d/$yuming.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/html.conf
 	  sed -i "s/yuming.com/$yuming/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
@@ -5714,7 +5714,7 @@ linux_ldnmp() {
 	  read -e -p "输入远程服务器密码: " usepasswd
 
 	  cd ~
-	  wget -O ${useip}_beifen.sh ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/beifen.sh > /dev/null 2>&1
+	  wget -O ${useip}_beifen.sh ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/beifen.sh > /dev/null 2>&1
 	  chmod +x ${useip}_beifen.sh
 
 	  sed -i "s/0.0.0.0/$useip/g" ${useip}_beifen.sh
@@ -5887,14 +5887,14 @@ linux_ldnmp() {
 					  read -e -p "输入CF的账号: " cfuser
 					  read -e -p "输入CF的Global API Key: " cftoken
 
-					  wget -O /home/web/conf.d/default.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/nginx/main/default11.conf
+					  wget -O /home/web/conf.d/default.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/default11.conf
 					  docker restart nginx
 
 					  cd /path/to/fail2ban/config/fail2ban/jail.d/
-					  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
+					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
 
 					  cd /path/to/fail2ban/config/fail2ban/action.d
-					  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/cloudflare-docker.conf
+					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/cloudflare-docker.conf
 
 					  sed -i "s/kejilion@outlook.com/$cfuser/g" /path/to/fail2ban/config/fail2ban/action.d/cloudflare-docker.conf
 					  sed -i "s/APIKEY00000/$cftoken/g" /path/to/fail2ban/config/fail2ban/action.d/cloudflare-docker.conf
@@ -5919,7 +5919,7 @@ linux_ldnmp() {
 					  cd ~
 					  install jq bc
 					  check_crontab_installed
-					  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/CF-Under-Attack.sh
+					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/CF-Under-Attack.sh
 					  chmod +x CF-Under-Attack.sh
 					  sed -i "s/AAAA/$cfuser/g" ~/CF-Under-Attack.sh
 					  sed -i "s/BBBB/$cftoken/g" ~/CF-Under-Attack.sh
@@ -5974,9 +5974,9 @@ linux_ldnmp() {
 			clear
 			f2b_install_sshd
 			cd /path/to/fail2ban/config/fail2ban/filter.d
-			curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/fail2ban-nginx-cc.conf
+			curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/fail2ban-nginx-cc.conf
 			cd /path/to/fail2ban/config/fail2ban/jail.d/
-			curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
+			curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
 			sed -i "/cloudflare/d" /path/to/fail2ban/config/fail2ban/jail.d/nginx-docker-cc.conf
 			f2b_status
 			cd ~
@@ -6006,19 +6006,19 @@ linux_ldnmp() {
 				  sed -i 's/worker_processes.*/worker_processes 4;/' /home/web/nginx.conf
 
 				  # php调优
-				  wget -O /home/optimized_php.ini ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/optimized_php.ini
+				  wget -O /home/optimized_php.ini ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/optimized_php.ini
 				  docker cp /home/optimized_php.ini php:/usr/local/etc/php/conf.d/optimized_php.ini
 				  docker cp /home/optimized_php.ini php74:/usr/local/etc/php/conf.d/optimized_php.ini
 				  rm -rf /home/optimized_php.ini
 
 				  # php调优
-				  wget -O /home/www.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/www-1.conf
+				  wget -O /home/www.conf ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/www-1.conf
 				  docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 				  docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 				  rm -rf /home/www.conf
 
 				  # mysql调优
-				  wget -O /home/custom_mysql_config.cnf ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/custom_mysql_config-1.cnf
+				  wget -O /home/custom_mysql_config.cnf ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/custom_mysql_config-1.cnf
 				  docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 				  rm -rf /home/custom_mysql_config.cnf
 
@@ -6038,19 +6038,19 @@ linux_ldnmp() {
 				  sed -i 's/worker_processes.*/worker_processes 8;/' /home/web/nginx.conf
 
 				  # php调优
-				  wget -O /home/optimized_php.ini ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/optimized_php.ini
+				  wget -O /home/optimized_php.ini ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/optimized_php.ini
 				  docker cp /home/optimized_php.ini php:/usr/local/etc/php/conf.d/optimized_php.ini
 				  docker cp /home/optimized_php.ini php74:/usr/local/etc/php/conf.d/optimized_php.ini
 				  rm -rf /home/optimized_php.ini
 
 				  # php调优
-				  wget -O /home/www.conf ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/www.conf
+				  wget -O /home/www.conf ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/www.conf
 				  docker cp /home/www.conf php:/usr/local/etc/php-fpm.d/www.conf
 				  docker cp /home/www.conf php74:/usr/local/etc/php-fpm.d/www.conf
 				  rm -rf /home/www.conf
 
 				  # mysql调优
-				  wget -O /home/custom_mysql_config.cnf ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/custom_mysql_config.cnf
+				  wget -O /home/custom_mysql_config.cnf ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/custom_mysql_config.cnf
 				  docker cp /home/custom_mysql_config.cnf mysql:/etc/mysql/conf.d/
 				  rm -rf /home/custom_mysql_config.cnf
 
@@ -6147,7 +6147,7 @@ linux_ldnmp() {
 			  run_command docker exec php sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories > /dev/null 2>&1
 
 			  docker exec php apk update
-			  curl -sL ${gh_proxy}https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions
+			  curl -sL ${gh_proxy}github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions
 			  docker exec php mkdir -p /usr/local/bin/
 			  docker cp /usr/local/bin/install-php-extensions php:/usr/local/bin/
 			  docker exec php chmod +x /usr/local/bin/install-php-extensions
@@ -6156,7 +6156,7 @@ linux_ldnmp() {
 							apk add --no-cache imagemagick imagemagick-dev \
 							&& apk add --no-cache git autoconf gcc g++ make pkgconfig \
 							&& rm -rf /tmp/imagick \
-							&& git clone ${gh_proxy}https://github.com/Imagick/imagick /tmp/imagick \
+							&& git clone ${gh_proxy}github.com/Imagick/imagick /tmp/imagick \
 							&& cd /tmp/imagick \
 							&& phpize \
 							&& ./configure \
@@ -6478,7 +6478,7 @@ linux_panel() {
 					1)
 						install unzip jq
 						install_docker
-						curl -sL ${gh_proxy}https://raw.githubusercontent.com/nezhahq/scripts/refs/heads/main/install.sh -o nezha.sh && chmod +x nezha.sh && ./nezha.sh
+						curl -sL ${gh_proxy}raw.githubusercontent.com/nezhahq/scripts/refs/heads/main/install.sh -o nezha.sh && chmod +x nezha.sh && ./nezha.sh
 						local docker_port=$(docker port $docker_name | awk -F'[:]' '/->/ {print $NF}' | uniq)
 						check_docker_app_ip
 						;;
@@ -6757,7 +6757,7 @@ linux_panel() {
 					  --restart unless-stopped \
 					  whyour/qinglong:latest"
 			local docker_describe="青龙面板是一个定时任务管理平台"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/whyour/qinglong"
+			local docker_url="官网介绍: ${gh_proxy}github.com/whyour/qinglong"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -6795,7 +6795,7 @@ linux_panel() {
 						install jq
 						install_docker
 						cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
+						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
 						cd /home/docker/cloud/ && docker compose up -d
 
 						clear
@@ -6814,7 +6814,7 @@ linux_panel() {
 						docker rm -f aria2
 						docker rmi -f p3terx/aria2-pro
 						cd /home/ && mkdir -p docker/cloud && cd docker/cloud && mkdir temp_data && mkdir -vp cloudreve/{uploads,avatar} && touch cloudreve/conf.ini && touch cloudreve/cloudreve.db && mkdir -p aria2/config && mkdir -p data/aria2 && chmod -R 777 data/aria2
-						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}https://raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
+						curl -o /home/docker/cloud/docker-compose.yml ${gh_proxy}raw.githubusercontent.com/kejilion/docker/main/cloudreve-docker-compose.yml
 						cd /home/docker/cloud/ && docker compose up -d
 						clear
 						echo "cloudreve已经安装完成"
@@ -6864,7 +6864,7 @@ linux_panel() {
 					  --restart unless-stopped \
 					  ddsderek/easyimage:latest"
 			local docker_describe="简单图床是一个简单的图床程序"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/icret/EasyImages2.0"
+			local docker_url="官网介绍: ${gh_proxy}github.com/icret/EasyImages2.0"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -6895,7 +6895,7 @@ linux_panel() {
 			local docker_port=89
 			local docker_rum="docker run -d --name looking-glass --restart always -p 89:80 wikihostinc/looking-glass-server"
 			local docker_describe="Speedtest测速面板是一个VPS网速测试工具，多项测试功能，还可以实时监控VPS进出站流量"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/wikihost-opensource/als"
+			local docker_url="官网介绍: ${gh_proxy}github.com/wikihost-opensource/als"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7031,7 +7031,7 @@ linux_panel() {
 			local docker_port=8180
 			local docker_rum="docker run -d -p 8180:8080 -v /home/docker/vscode-web:/home/coder/.local/share/code-server --name vscode-web --restart always codercom/code-server"
 			local docker_describe="VScode是一款强大的在线代码编写工具"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/coder/code-server"
+			local docker_url="官网介绍: ${gh_proxy}github.com/coder/code-server"
 			local docker_use="sleep 3"
 			local docker_passwd="docker exec vscode-web cat /home/coder/.config/code-server/config.yaml"
 			docker_app
@@ -7047,7 +7047,7 @@ linux_panel() {
 							--restart=always \
 							louislam/uptime-kuma:latest"
 			local docker_describe="Uptime Kuma 易于使用的自托管监控工具"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/louislam/uptime-kuma"
+			local docker_url="官网介绍: ${gh_proxy}github.com/louislam/uptime-kuma"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7059,7 +7059,7 @@ linux_panel() {
 			local docker_port=5230
 			local docker_rum="docker run -d --name memos -p 5230:5230 -v /home/docker/memos:/var/opt/memos --restart always ghcr.io/usememos/memos:latest"
 			local docker_describe="Memos是一款轻量级、自托管的备忘录中心"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/usememos/memos"
+			local docker_url="官网介绍: ${gh_proxy}github.com/usememos/memos"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7124,7 +7124,7 @@ linux_panel() {
 			local docker_port=5003
 			local docker_rum="docker run -d --name dockge --restart unless-stopped -p 5003:5001 -v /var/run/docker.sock:/var/run/docker.sock -v /home/docker/dockge/data:/app/data -v  /home/docker/dockge/stacks:/home/docker/dockge/stacks -e DOCKGE_STACKS_DIR=/home/docker/dockge/stacks louislam/dockge"
 			local docker_describe="dockge是一个可视化的docker-compose容器管理面板"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/louislam/dockge"
+			local docker_url="官网介绍: ${gh_proxy}github.com/louislam/dockge"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7136,7 +7136,7 @@ linux_panel() {
 			local docker_port=8028
 			local docker_rum="docker run -d -p 8028:8080 --name speedtest --restart always ghcr.io/librespeed/speedtest"
 			local docker_describe="librespeed是用Javascript实现的轻量级速度测试工具，即开即用"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/librespeed/speedtest"
+			local docker_url="官网介绍: ${gh_proxy}github.com/librespeed/speedtest"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7199,7 +7199,7 @@ linux_panel() {
 							 -e DOCKER_ENABLE_SECURITY=false \
 							 frooodle/s-pdf:latest"
 			local docker_describe="这是一个强大的本地托管基于 Web 的 PDF 操作工具，使用 docker，允许您对 PDF 文件执行各种操作，例如拆分合并、转换、重新组织、添加图像、旋转、压缩等。"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/Stirling-Tools/Stirling-PDF"
+			local docker_url="官网介绍: ${gh_proxy}github.com/Stirling-Tools/Stirling-PDF"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7245,7 +7245,7 @@ linux_panel() {
 							-v /home/docker/pingvin-share/data:/opt/app/backend/data \
 							stonith404/pingvin-share"
 			local docker_describe="Pingvin Share 是一个可自建的文件分享平台，是 WeTransfer 的一个替代品"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/stonith404/pingvin-share"
+			local docker_url="官网介绍: ${gh_proxy}github.com/stonith404/pingvin-share"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7264,7 +7264,7 @@ linux_panel() {
 							--name moments \
 							kingwrcy/moments:latest"
 			local docker_describe="极简朋友圈，高仿微信朋友圈，记录你的美好生活"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/kingwrcy/moments?tab=readme-ov-file"
+			local docker_url="官网介绍: ${gh_proxy}github.com/kingwrcy/moments?tab=readme-ov-file"
 			local docker_use="echo \"账号: admin  密码: a123456\""
 			local docker_passwd=""
 			docker_app
@@ -7281,7 +7281,7 @@ linux_panel() {
 							--restart=always \
 							lobehub/lobe-chat"
 			local docker_describe="LobeChat聚合市面上主流的AI大模型，ChatGPT/Claude/Gemini/Groq/Ollama"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/lobehub/lobe-chat"
+			local docker_url="官网介绍: ${gh_proxy}github.com/lobehub/lobe-chat"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7293,7 +7293,7 @@ linux_panel() {
 			local docker_port=8037
 			local docker_rum="docker run -d -p 8037:18966 --name myip --restart always ghcr.io/jason5ng32/myip:latest"
 			local docker_describe="是一个多功能IP工具箱，可以查看自己IP信息及连通性，用网页面板呈现"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
+			local docker_url="官网介绍: ${gh_proxy}github.com/jason5ng32/MyIP/blob/main/README_ZH.md"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7310,7 +7310,7 @@ linux_panel() {
 
 			if [ ! -d /home/docker/bililive-go/ ]; then
 				mkdir -p /home/docker/bililive-go/ > /dev/null 2>&1
-				wget -O /home/docker/bililive-go/config.yml ${gh_proxy}https://raw.githubusercontent.com/hr3lxphr6j/bililive-go/master/config.yml > /dev/null 2>&1
+				wget -O /home/docker/bililive-go/config.yml ${gh_proxy}raw.githubusercontent.com/hr3lxphr6j/bililive-go/master/config.yml > /dev/null 2>&1
 			fi
 
 			local docker_name="bililive-go"
@@ -7318,7 +7318,7 @@ linux_panel() {
 			local docker_port=8039
 			local docker_rum="docker run --restart=always --name bililive-go -v /home/docker/bililive-go/config.yml:/etc/bililive-go/config.yml -v /home/docker/bililive-go/Videos:/srv/bililive -p 8039:8080 -d chigusa/bililive-go"
 			local docker_describe="Bililive-go是一个支持多种直播平台的直播录制工具"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/hr3lxphr6j/bililive-go"
+			local docker_url="官网介绍: ${gh_proxy}github.com/hr3lxphr6j/bililive-go"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7330,7 +7330,7 @@ linux_panel() {
 			local docker_port=8040
 			local docker_rum="docker run -d -p 8040:5032 --restart always --name webssh -e TZ=Asia/Shanghai jrohy/webssh"
 			local docker_describe="简易在线ssh连接工具和sftp工具"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/Jrohy/webssh"
+			local docker_url="官网介绍: ${gh_proxy}github.com/Jrohy/webssh"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7342,7 +7342,7 @@ linux_panel() {
 				clear
 				echo "耗子管理面板"
 				echo "使用 Golang + Vue 开发的开源轻量 Linux 服务器运维管理面板。"
-				echo "官方地址: ${gh_proxy}https://github.com/TheTNB/panel"
+				echo "官方地址: ${gh_proxy}github.com/TheTNB/panel"
 				echo "------------------------"
 				echo "1. 安装            2. 管理            3. 卸载"
 				echo "------------------------"
@@ -7383,7 +7383,7 @@ linux_panel() {
 						  --restart unless-stopped \
 						  germannewsmaker/nexterm:latest"
 			local docker_describe="nexterm是一款强大的在线SSH/VNC/RDP连接工具。"
-			local docker_url="官网介绍: ${gh_proxy}https://github.com/gnmyt/Nexterm"
+			local docker_url="官网介绍: ${gh_proxy}github.com/gnmyt/Nexterm"
 			local docker_use=""
 			local docker_passwd=""
 			docker_app
@@ -7579,7 +7579,7 @@ linux_panel() {
 		  51)
 			clear
 			send_stats "PVE开小鸡"
-			curl -L ${gh_proxy}https://raw.githubusercontent.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
+			curl -L ${gh_proxy}raw.githubusercontent.com/oneclickvirt/pve/main/scripts/install_pve.sh -o install_pve.sh && chmod +x install_pve.sh && bash install_pve.sh
 			  ;;
 
 
@@ -8772,7 +8772,7 @@ EOF
 
 			  clear
 			  echo "fail2ban是一个SSH防止暴力破解工具"
-			  echo "官网介绍: ${gh_proxy}https://github.com/fail2ban/fail2ban"
+			  echo "官网介绍: ${gh_proxy}github.com/fail2ban/fail2ban"
 			  echo "------------------------------------------------"
 			  echo "工作原理：研判非法IP恶意高频访问SSH端口，自动进行IP封锁"
 			  echo "------------------------------------------------"
@@ -8840,7 +8840,7 @@ EOF
 					cz_day=${cz_day:-1}
 
 					cd ~
-					curl -Ss -o ~/Limiting_Shut_down.sh ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/Limiting_Shut_down1.sh
+					curl -Ss -o ~/Limiting_Shut_down.sh ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/Limiting_Shut_down1.sh
 					chmod +x ~/Limiting_Shut_down.sh
 					sed -i "s/110/$rx_threshold_gb/g" ~/Limiting_Shut_down.sh
 					sed -i "s/120/$tx_threshold_gb/g" ~/Limiting_Shut_down.sh
@@ -8938,7 +8938,7 @@ EOF
 					  chmod +x ~/TG-check-notify.sh
 					  nano ~/TG-check-notify.sh
 				  else
-					  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/TG-check-notify.sh
+					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/TG-check-notify.sh
 					  chmod +x ~/TG-check-notify.sh
 					  nano ~/TG-check-notify.sh
 				  fi
@@ -8947,7 +8947,7 @@ EOF
 				  crontab -l | grep -v '~/TG-check-notify.sh' | crontab - > /dev/null 2>&1
 				  (crontab -l ; echo "@reboot tmux new -d -s TG-check-notify '~/TG-check-notify.sh'") | crontab - > /dev/null 2>&1
 
-				  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/TG-SSH-check-notify.sh > /dev/null 2>&1
+				  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/TG-SSH-check-notify.sh > /dev/null 2>&1
 				  sed -i "3i$(grep '^TELEGRAM_BOT_TOKEN=' ~/TG-check-notify.sh)" TG-SSH-check-notify.sh > /dev/null 2>&1
 				  sed -i "4i$(grep '^CHAT_ID=' ~/TG-check-notify.sh)" TG-SSH-check-notify.sh
 				  chmod +x ~/TG-SSH-check-notify.sh
@@ -8979,7 +8979,7 @@ EOF
 			  root_use
 			  send_stats "修复SSH高危漏洞"
 			  cd ~
-			  curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/upgrade_openssh9.8p1.sh
+			  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/upgrade_openssh9.8p1.sh
 			  chmod +x ~/upgrade_openssh9.8p1.sh
 			  ~/upgrade_openssh9.8p1.sh
 			  rm -f ~/upgrade_openssh9.8p1.sh
@@ -9426,7 +9426,7 @@ EOF
 cluster_python3() {
 	install python3 python3-paramiko
 	cd ~/cluster/
-	curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
+	curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/python-for-vps/main/cluster/$py_task
 	python3 ~/cluster/$py_task
 }
 
@@ -9625,11 +9625,11 @@ kejilion_update() {
 	clear
 	echo "更新日志"
 	echo "------------------------"
-	echo "全部日志: ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
+	echo "全部日志: ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
 	echo "------------------------"
 
-	curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
-	local sh_v_new=$(curl -s ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
+	curl -s ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 35
+	local sh_v_new=$(curl -s ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
 
 	if [ "$sh_v" = "$sh_v_new" ]; then
 		echo -e "${gl_lv}你已经是最新版本！${gl_huang}v$sh_v${gl_bai}"
@@ -9647,9 +9647,9 @@ kejilion_update() {
 				clear
 				local country=$(curl -s ipinfo.io/country)
 				if [ "$country" = "CN" ]; then
-					curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/cn/kejilion.sh && chmod +x kejilion.sh
+					curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/cn/kejilion.sh && chmod +x kejilion.sh
 				else
-					curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
+					curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
 				fi
 				canshu_v6
 				CheckFirstRun_true
@@ -9749,7 +9749,7 @@ case $choice in
   14) linux_cluster ;;
   15) kejilion_Affiliates ;;
   p) send_stats "幻兽帕鲁开服脚本" ; cd ~
-	 curl -sS -O ${gh_proxy}https://raw.githubusercontent.com/kejilion/sh/main/palworld.sh ; chmod +x palworld.sh ; ./palworld.sh
+	 curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/palworld.sh ; chmod +x palworld.sh ; ./palworld.sh
 	 exit
 	 ;;
   00) kejilion_update ;;
@@ -9834,7 +9834,7 @@ else
 			linux_trash
 			;;
 		backup|bf|备份)
-			linux_trash
+			linux_backup
 			;;
 		wp|wordpress)
 			shift
