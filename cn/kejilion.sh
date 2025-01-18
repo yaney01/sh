@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.6.5"
+sh_v="3.6.6"
 
 
 gl_hui='\e[37m'
@@ -1415,7 +1415,7 @@ while true; do
 	echo "------------------------"
 	echo "1. 安装            2. 更新            3. 卸载"
 	echo "------------------------"
-	echo "5. 域名访问"
+	echo "5. 域名访问        6. 删除域名访问"
 	echo "------------------------"
 	echo "0. 返回上一级"
 	echo "------------------------"
@@ -1459,6 +1459,13 @@ while true; do
 			add_yuming
 			ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 			;;
+
+		6)
+			echo "域名格式 example.com 不带https://"
+			
+			web_del
+			;;
+
 		*)
 			break
 			;;
@@ -2006,6 +2013,8 @@ ldnmp_web_status() {
 				;;
 
 			20)
+				echo "域名格式 example.com 不带https://"
+				
 				web_del
 
 				;;
@@ -2104,14 +2113,42 @@ fi
 
 
 
-
 donlond_frp() {
 	mkdir -p /home/frp/ && cd /home/frp/
-	curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v0.61.0/frp_0.61.0_linux_amd64.tar.gz -o frp_0.61.0_linux_amd64.tar.gz
+	rm -rf /home/frp/frp_0.61.0_linux_amd64
+
+	arch=$(uname -m)
+	frp_v=0.61.1
+
+	if [[ "$arch" == "x86_64" ]]; then
+		curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v${frp_v}/frp_${frp_v}_linux_amd64.tar.gz -o frp_${frp_v}_linux_amd64.tar.gz
+	elif [[ "$arch" == "armv7l" || "$arch" == "aarch64" ]]; then
+		curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v${frp_v}/frp_${frp_v}_linux_arm.tar.gz -o frp_${frp_v}_linux_amd64.tar.gz
+	else
+		echo "不支持当前CPU架构: $arch"
+	fi
+	
+	# 解压 .tar.gz 文件
 	tar -zxvf frp_*.tar.gz
+	dir_name=$(tar -tzf frp_*.tar.gz | head -n 1 | cut -f 1 -d '/')		
+	mv "$dir_name" frp_0.61.0_linux_amd64
+	
+
 }
 
+
+# donlond_frp() {
+# 	mkdir -p /home/frp/ && cd /home/frp/
+# 	curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v0.61.0/frp_0.61.0_linux_amd64.tar.gz -o frp_0.61.0_linux_amd64.tar.gz
+# 	curl -L ${gh_proxy}github.com/fatedier/frp/releases/download/v0.61.0/frp_0.61.0_linux_arm.tar.gz -o frp_0.61.0_linux_amd64.tar.gz
+# 	tar -zxvf frp_*.tar.gz
+# }
+
+
+
 generate_frps_config() {
+
+	send_stats "安装frp服务端"
 	# 生成随机端口和凭证
 	local bind_port=8055
 	local dashboard_port=8056
@@ -2157,6 +2194,7 @@ EOF
 
 
 configure_frpc() {
+	send_stats "安装frp客户端"
 	# 提示用户输入外网服务器信息
 	read -e -p "请输入外网对接IP: " server_addr
 	read -e -p "请输入外网对接token: " token
@@ -2182,6 +2220,7 @@ EOF
 }
 
 add_forwarding_service() {
+	send_stats "添加frp内网服务"
 	# 提示用户输入服务名称和转发信息
 	read -e -p "请输入服务名称: " service_name
 	read -e -p "请输入转发类型 (tcp/udp) [回车默认tcp]: " service_type
@@ -2210,6 +2249,7 @@ EOF
 
 
 delete_forwarding_service() {
+	send_stats "删除frp内网服务"
 	# 提示用户输入需要删除的服务名称
 	read -e -p "请输入需要删除的服务名称: " service_name
 	# 使用 sed 删除该服务及其相关配置
@@ -2382,9 +2422,9 @@ frps_panel() {
 		echo "------------------------"
 		echo "1. 安装                  2. 更新                  3. 卸载"
 		echo "------------------------"
-		echo "5. 内网服务域名访问"
+		echo "5. 内网服务域名访问      6. 删除域名访问"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "00. 刷新服务状态         0. 返回上一级"
 		echo "------------------------"
 		read -e -p "输入你的选择: " choice
 		case $choice in
@@ -2415,6 +2455,17 @@ frps_panel() {
 				read -e -p "请输入你的内网穿透服务端口: " frps_port
 				ldnmp_Proxy ${yuming} ${ipv4_address} ${frps_port}
 				;;
+			6)
+				echo "域名格式 example.com 不带https://"
+				
+				web_del
+				;;
+
+			00)
+				echo "刷新FRP服务状态"
+				send_stats "刷新FRP服务状态"
+				;;
+
 			*)
 				break
 				;;
@@ -6713,7 +6764,9 @@ linux_panel() {
 				echo ""
 
 				echo "------------------------"
-				echo "1. 使用           2. 域名访问           0. 返回上一级"
+				echo "1. 使用           2. 域名访问           3. 删除域名访问"
+				echo "------------------------"
+				echo "0. 返回上一级"
 				echo "------------------------"
 				read -e -p "输入你的选择: " choice
 
@@ -6730,6 +6783,12 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						;;
+
+					3)
+						echo "域名格式 example.com 不带https://"
+						
+						web_del
 						;;
 
 					*)
@@ -6904,7 +6963,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装           2. 更新           3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问"
+				echo "5. 域名访问       6. 删除域名访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
 				echo "------------------------"
@@ -6956,6 +7015,14 @@ linux_panel() {
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
+
+
+					6)
+						echo "域名格式 example.com 不带https://"
+						
+						web_del
+						;;
+
 
 					*)
 						break
@@ -7027,7 +7094,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装           2. 更新           3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问"
+				echo "5. 域名访问       6. 删除域名访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
 				echo "------------------------"
@@ -7082,6 +7149,13 @@ linux_panel() {
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
+
+					6)
+						echo "域名格式 example.com 不带https://"
+						
+						web_del
+						;;
+
 
 					*)
 						break
@@ -7704,7 +7778,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装           2. 更新           3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问"
+				echo "5. 域名访问       6. 删除域名访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
 				echo "------------------------"
@@ -7754,6 +7828,13 @@ linux_panel() {
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
 						;;
+
+					6)
+						echo "域名格式 example.com 不带https://"
+						
+						web_del
+						;;
+
 
 					*)
 						break
