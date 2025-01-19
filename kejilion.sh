@@ -2129,6 +2129,7 @@ donlond_frp() {
 	fi
 	
 	# 解压 .tar.gz 文件
+	install tar
 	tar -zxvf frp_*.tar.gz
 	dir_name=$(tar -tzf frp_*.tar.gz | head -n 1 | cut -f 1 -d '/')		
 	mv "$dir_name" frp_0.61.0_linux_amd64
@@ -2404,8 +2405,9 @@ frps_panel() {
 		clear
 		check_frp_app
 		echo -e "FRP服务端 $check_frp"
-		echo "构建FRP内网穿透服务环境"
+		echo "构建FRP内网穿透服务环境，将无公网IP的设备暴露到互联网"
 		echo "官网介绍: https://github.com/fatedier/frp/"
+		echo "视频教学: https://www.bilibili.com/video/BV1yMw6e2EwL?t=124.0"
 		if [ -d "/home/frp/" ]; then
 			check_docker_app_ip
 			frps_main_ports
@@ -2448,14 +2450,13 @@ frps_panel() {
 				ldnmp_Proxy ${yuming} ${ipv4_address} ${frps_port}
 				;;
 			6)
-				echo "域名格式 example.com 不带https://"
-				
+				echo "域名格式 example.com 不带https://"			
 				web_del
 				;;
 
 			00)
-				echo "刷新FRP服务状态"
 				send_stats "刷新FRP服务状态"
+				echo "已经刷新FRP服务状态"	
 				;;
 
 			*)
@@ -2474,8 +2475,9 @@ frpc_panel() {
 		clear
 		check_frp_app
 		echo -e "FRP客户端 $check_frp"
-		echo "与服务端对接，对接后可创建内网穿透转发服务"
+		echo "与服务端对接，对接后可创建内网穿透服务到互联网访问"
 		echo "官网介绍: https://github.com/fatedier/frp/"
+		echo "视频教学: https://www.bilibili.com/video/BV1yMw6e2EwL?t=173.9"
 		echo "------------------------"
 		if [ -d "/home/frp/" ]; then
 			list_forwarding_services "/home/frp/frp_0.61.0_linux_amd64/frpc.toml"
