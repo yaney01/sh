@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.6.9"
+sh_v="3.6.10"
 
 
 gl_hui='\e[37m'
@@ -762,6 +762,12 @@ docker_ipv6_off() {
 
 
 iptables_open() {
+	mkdir -p /etc/iptables
+	touch /etc/iptables/rules.v4
+	iptables-save > /etc/iptables/rules.v4
+	crontab -l | grep -v 'iptables-restore' | crontab - > /dev/null 2>&1
+	(crontab -l ; echo '@reboot iptables-restore < /etc/iptables/rules.v4') | crontab - > /dev/null 2>&1
+
 	iptables -P INPUT ACCEPT
 	iptables -P FORWARD ACCEPT
 	iptables -P OUTPUT ACCEPT
@@ -1087,7 +1093,7 @@ reverse_proxy() {
 	  sed -i "s/0.0.0.0/$ipv4_address/g" /home/web/conf.d/$yuming.conf
 	  sed -i "s|0000|$duankou|g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
-	  docker restart nginx
+	  docker exec nginx nginx -s reload
 }
 
 
@@ -1206,7 +1212,8 @@ web_cache() {
   cf_purge_cache
   docker exec php php -r 'opcache_reset();'
   docker exec php74 php -r 'opcache_reset();'
-  docker restart nginx php php74 redis
+  docker exec nginx nginx -s reload
+  docker restart php php74 redis
   restart_redis
 }
 
@@ -1239,7 +1246,8 @@ web_del() {
 		docker exec mysql mysql -u root -p"$dbrootpasswd" -e "DROP DATABASE ${dbname};" > /dev/null 2>&1
 	done
 
-	docker restart nginx
+	docker exec nginx nginx -s reload
+
 }
 
 
@@ -1268,7 +1276,7 @@ nginx_waf() {
 
 	# 检查 nginx 镜像并根据情况处理
 	if grep -q "kjlion/nginx:alpine" /home/web/docker-compose.yml; then
-		docker restart nginx
+		docker exec nginx nginx -s reload
 	else
 		sed -i 's|nginx:alpine|kjlion/nginx:alpine|g' /home/web/docker-compose.yml
 		nginx_upgrade
@@ -1447,7 +1455,7 @@ block_container_port() {
 		echo "规则已存在：放行本地网络 127.0.0.0/8 访问 $container_ip，跳过添加。"
 	fi
 
-	echo "规则已成功添加到 DOCKER-USER 链。"
+	echo "规则已成功添加到 DOCKER-USER 链。如果无效重启服务器后再试！"
 }
 
 
@@ -1676,7 +1684,7 @@ tmux new -d -s "$base_name-$tmuxd_ID" "$tmuxd"
 
 
 f2b_status() {
-	 docker restart fail2ban
+	 docker exec -it fail2ban fail2ban-client reload
 	 sleep 3
 	 docker exec -it fail2ban fail2ban-client status
 }
@@ -1942,7 +1950,7 @@ ldnmp_Proxy() {
 	sed -i "s/0.0.0.0/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 	sed -i "s|0000|$port|g" /home/web/conf.d/$yuming.conf
 	nginx_http_on
-	docker restart nginx
+	docker exec nginx nginx -s reload
 	nginx_web_on
 }
 
@@ -2041,18 +2049,8 @@ ldnmp_web_status() {
 					done
 				done
 
-				# docker exec mysql mysql -u root -p"$dbrootpasswd" -D $dbname -e "
-				# UPDATE wp_options SET option_value = replace(option_value, '$oddyuming', '$yuming') WHERE option_name = 'home' OR option_name = 'siteurl';
-				# UPDATE wp_posts SET guid = replace(guid, '$oddyuming', '$yuming');
-				# UPDATE wp_posts SET post_content = replace(post_content, '$oddyuming', '$yuming');
-				# UPDATE wp_postmeta SET meta_value = replace(meta_value,'$oddyuming', '$yuming');
-				# "
-
-
 				# 网站目录替换
 				mv /home/web/html/$oddyuming /home/web/html/$yuming
-				# sed -i "s/$odd_dbname/$dbname/g" /home/web/html/$yuming/wordpress/wp-config.php
-				# sed -i "s/$oddyuming/$yuming/g" /home/web/html/$yuming/wordpress/wp-config.php
 
 				find /home/web/html/$yuming -type f -exec sed -i "s/$odd_dbname/$dbname/g" {} +
 				find /home/web/html/$yuming -type f -exec sed -i "s/$oddyuming/$yuming/g" {} +
@@ -2063,7 +2061,7 @@ ldnmp_web_status() {
 				rm /home/web/certs/${oddyuming}_key.pem
 				rm /home/web/certs/${oddyuming}_cert.pem
 
-				docker restart nginx
+				docker exec nginx nginx -s reload
 
 				;;
 
@@ -2085,7 +2083,7 @@ ldnmp_web_status() {
 				sed -i "s|/etc/nginx/certs/${oddyuming}_cert.pem|/etc/nginx/certs/${yuming}_cert.pem|g" /home/web/conf.d/$yuming.conf
 				sed -i "s|/etc/nginx/certs/${oddyuming}_key.pem|/etc/nginx/certs/${yuming}_key.pem|g" /home/web/conf.d/$yuming.conf
 
-				docker restart nginx
+				docker exec nginx nginx -s reload
 
 				;;
 			5)
@@ -2102,7 +2100,7 @@ ldnmp_web_status() {
 				send_stats "编辑全局配置"
 				install nano
 				nano /home/web/nginx.conf
-				docker restart nginx
+				docker exec nginx nginx -s reload
 				;;
 
 			8)
@@ -2110,7 +2108,7 @@ ldnmp_web_status() {
 				read -e -p "编辑站点配置，请输入你要编辑的域名: " yuming
 				install nano
 				nano /home/web/conf.d/$yuming.conf
-				docker restart nginx
+				docker exec nginx nginx -s reload
 				;;
 			9)
 				phpmyadmin_upgrade
@@ -2893,7 +2891,15 @@ new_ssh_port() {
   # 重启 SSH 服务
   restart_ssh
 
-  iptables_open
+  iptables -A INPUT -p tcp --dport "$new_port" -j ACCEPT
+  ip6tables -A INPUT -p tcp --dport "$new_port" -j ACCEPT
+
+  mkdir -p /etc/iptables
+  touch /etc/iptables/rules.v4
+  iptables-save > /etc/iptables/rules.v4
+  crontab -l | grep -v 'iptables-restore' | crontab - > /dev/null 2>&1
+  (crontab -l ; echo '@reboot iptables-restore < /etc/iptables/rules.v4') | crontab - > /dev/null 2>&1
+
   remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 
   echo "SSH 端口已修改为: $new_port"
@@ -6105,7 +6111,7 @@ linux_ldnmp() {
 	  sed -i "s/baidu.com/$reverseproxy/g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
-	  docker restart nginx
+	  docker exec nginx nginx -s reload
 
 	  nginx_web_on
 
@@ -6133,7 +6139,7 @@ linux_ldnmp() {
 	  sed -i "s|fandaicom|$fandai_yuming|g" /home/web/conf.d/$yuming.conf
 	  nginx_http_on
 
-	  docker restart nginx
+	  docker exec nginx nginx -s reload
 
 	  nginx_web_on
 
@@ -6204,7 +6210,7 @@ linux_ldnmp() {
 	  rm -f $(ls -t *.zip | head -n 1)
 
 	  docker exec nginx chmod -R nginx:nginx /var/www/html
-	  docker restart nginx
+	  docker exec nginx nginx -s reload
 
 	  nginx_web_on
 
@@ -6256,7 +6262,7 @@ linux_ldnmp() {
 	  sed -i "s#/home/web/#/var/www/#g" /home/web/conf.d/$yuming.conf
 
 	  docker exec nginx chmod -R nginx:nginx /var/www/html
-	  docker restart nginx
+	  docker exec nginx nginx -s reload
 
 	  nginx_web_on
 
@@ -6495,7 +6501,7 @@ linux_ldnmp() {
 					  read -e -p "输入CF的Global API Key: " cftoken
 
 					  wget -O /home/web/conf.d/default.conf ${gh_proxy}raw.githubusercontent.com/kejilion/nginx/main/default11.conf
-					  docker restart nginx
+					  docker exec nginx nginx -s reload
 
 					  cd /path/to/fail2ban/config/fail2ban/jail.d/
 					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/config/main/fail2ban/nginx-docker-cc.conf
@@ -9069,9 +9075,14 @@ EOF
 			  ;;
 
 		  17)
+
 		  root_use
+		  mkdir -p /etc/iptables
+		  touch /etc/iptables/rules.v4
+		  iptables-save > /etc/iptables/rules.v4
+		  crontab -l | grep -v 'iptables-restore' | crontab - > /dev/null 2>&1
+		  (crontab -l ; echo '@reboot iptables-restore < /etc/iptables/rules.v4') | crontab - > /dev/null 2>&1
 		  while true; do
-			if dpkg -l | grep -q iptables-persistent; then
 				  clear
 				  echo "高级防火墙管理"
 				  send_stats "高级防火墙管理"
@@ -9089,8 +9100,6 @@ EOF
 				  echo "------------------------"
 				  echo "11. 允许PING                  	 12. 禁止PING"
 				  echo "------------------------"
-				  echo "99. 卸载防火墙"
-				  echo "------------------------"
 				  echo "0. 返回上一级选单"
 				  echo "------------------------"
 				  read -e -p "请输入你的选择: " sub_choice
@@ -9098,96 +9107,90 @@ EOF
 				  case $sub_choice in
 					  1)
 						   read -e -p "请输入开放的端口号: " o_port
-						   sed -i "/COMMIT/i -A INPUT -p tcp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
-						   sed -i "/COMMIT/i -A INPUT -p udp --dport $o_port -j ACCEPT" /etc/iptables/rules.v4
-						   iptables-restore < /etc/iptables/rules.v4
+
+						   iptables -A INPUT -p tcp --dport $o_port -j ACCEPT
+						   iptables -A INPUT -p udp --dport $o_port -j ACCEPT
+						   iptables-save > /etc/iptables/rules.v4
 						   send_stats "开放指定端口"
 
 						  ;;
 					  2)
-						  read -e -p "请输入关闭的端口号: " c_port
-						  sed -i "/--dport $c_port/d" /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
-						  send_stats "关闭指定端口"
+
+						  iptables -D INPUT -p tcp --dport $c_port -j ACCEPT
+						  iptables -D INPUT -p udp --dport $c_port -j ACCEPT
+						  iptables-save > /etc/iptables/rules.v4
 						  ;;
 
 					  3)
+						  # 开放所有端口
 						  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
-
-						  cat > /etc/iptables/rules.v4 << EOF
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A INPUT -i lo -j ACCEPT
--A FORWARD -i lo -j ACCEPT
--A INPUT -p tcp --dport $current_port -j ACCEPT
-COMMIT
-EOF
-						  iptables-restore < /etc/iptables/rules.v4
+						  iptables -F
+						  iptables -X
+						  iptables -P INPUT ACCEPT
+						  iptables -P FORWARD ACCEPT
+						  iptables -P OUTPUT ACCEPT
+						  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+						  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+						  iptables -A INPUT -i lo -j ACCEPT
+						  iptables -A FORWARD -i lo -j ACCEPT
+						  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
+						  iptables-save > /etc/iptables/rules.v4
 						  send_stats "开放所有端口"
 						  ;;
-					  4)
-						  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
 
-						  cat > /etc/iptables/rules.v4 << EOF
-*filter
-:INPUT DROP [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A INPUT -i lo -j ACCEPT
--A FORWARD -i lo -j ACCEPT
--A INPUT -p tcp --dport $current_port -j ACCEPT
-COMMIT
-EOF
-						  iptables-restore < /etc/iptables/rules.v4
+					  4)
+						  # 关闭所有端口
+						  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+						  iptables -F
+						  iptables -X
+						  iptables -P INPUT DROP
+						  iptables -P FORWARD DROP
+						  iptables -P OUTPUT ACCEPT
+						  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+						  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+						  iptables -A INPUT -i lo -j ACCEPT
+						  iptables -A FORWARD -i lo -j ACCEPT
+						  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
+						  iptables-save > /etc/iptables/rules.v4
 						  send_stats "关闭所有端口"
 						  ;;
 
+				  
 					  5)
+						  # IP 白名单
 						  read -e -p "请输入放行的IP: " o_ip
-						  sed -i "/COMMIT/i -A INPUT -s $o_ip -j ACCEPT" /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
+						  iptables -A INPUT -s $o_ip -j ACCEPT
+						  iptables-save > /etc/iptables/rules.v4
 						  send_stats "IP白名单"
 						  ;;
-
 					  6)
+						  # IP 黑名单
 						  read -e -p "请输入封锁的IP: " c_ip
-						  sed -i "/COMMIT/i -A INPUT -s $c_ip -j DROP" /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
+						  iptables -A INPUT -s $c_ip -j DROP
+						  iptables-save > /etc/iptables/rules.v4
 						  send_stats "IP黑名单"
 						  ;;
-
 					  7)
+						  # 清除指定 IP
 						  read -e -p "请输入清除的IP: " d_ip
-						  sed -i "/-A INPUT -s $d_ip/d" /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
+						  iptables -D INPUT -s $d_ip -j ACCEPT 2>/dev/null
+						  iptables -D INPUT -s $d_ip -j DROP 2>/dev/null
+						  iptables-save > /etc/iptables/rules.v4
 						  send_stats "清除指定IP"
 						  ;;
-
 					  11)
-						  sed -i '$i -A INPUT -p icmp --icmp-type echo-request -j ACCEPT' /etc/iptables/rules.v4
-						  sed -i '$i -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT' /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
-						  send_stats "允许ping"
+						  # 允许 PING
+						  iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+						  iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+						  iptables-save > /etc/iptables/rules.v4
+						  send_stats "允许PING"
 						  ;;
-
 					  12)
-						  sed -i "/icmp/d" /etc/iptables/rules.v4
-						  iptables-restore < /etc/iptables/rules.v4
-						  send_stats "禁用ping"
-						  ;;
-
-					  99)
-						  remove iptables-persistent
-						  rm /etc/iptables/rules.v4
-						  send_stats "卸载防火墙"
-						  break
-
+						  # 禁用 PING
+						  iptables -D INPUT -p icmp --icmp-type echo-request -j ACCEPT 2>/dev/null
+						  iptables -D OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT 2>/dev/null
+						  iptables-save > /etc/iptables/rules.v4
+						  send_stats "禁用PING"
 						  ;;
 
 					  *)
@@ -9195,61 +9198,8 @@ EOF
 						  ;;
 
 				  esac
-			else
-
-				clear
-				echo "将为你安装防火墙，该防火墙仅支持Debian/Ubuntu"
-				echo "------------------------------------------------"
-				read -e -p "确定继续吗？(Y/N): " choice
-
-				case "$choice" in
-				  [Yy])
-					if [ -r /etc/os-release ]; then
-						. /etc/os-release
-						if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
-							echo "当前环境不支持，仅支持Debian和Ubuntu系统"
-							break_end
-							linux_Settings
-						fi
-					else
-						echo "无法确定操作系统类型"
-						break
-					fi
-
-					clear
-					iptables_open
-					remove iptables-persistent ufw
-					rm /etc/iptables/rules.v4
-
-					apt update -y && apt install -y iptables-persistent
-
-					local current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
-
-					cat > /etc/iptables/rules.v4 << EOF
-*filter
-:INPUT DROP [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A INPUT -i lo -j ACCEPT
--A FORWARD -i lo -j ACCEPT
--A INPUT -p tcp --dport $current_port -j ACCEPT
-COMMIT
-EOF
-
-					iptables-restore < /etc/iptables/rules.v4
-					systemctl enable netfilter-persistent
-					echo "防火墙安装完成"
-					break_end
-					;;
-				  *)
-					echo "已取消"
-					break
-					;;
-				esac
-			fi
 		  done
+
 			  ;;
 
 		  18)
