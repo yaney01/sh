@@ -824,6 +824,90 @@ iptables_open() {
 }
 
 
+
+open_port() {
+	local port=$1
+	if [ -z "$port" ]; then
+		echo "请提供端口号"
+		return 1
+	fi
+
+	if ! sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
+		sudo iptables -I INPUT 1 -p tcp --dport $port -j ACCEPT
+		echo "已打开TCP端口 $port"
+	fi
+
+	if ! sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
+		sudo iptables -I INPUT 1 -p udp --dport $port -j ACCEPT
+		echo "已打开UDP端口 $port"		
+	fi
+
+	save_iptables_rules
+	send_stats "已打开端口"	
+}
+
+
+close_port() {
+	local port=$1
+	if [ -z "$port" ]; then
+		echo "请提供端口号"
+		return 1
+	fi
+
+	if sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
+		sudo iptables -D INPUT -p tcp --dport $port -j ACCEPT
+		echo "已关闭TCP端口 $port"		
+	fi
+
+	if sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
+		sudo iptables -D INPUT -p udp --dport $port -j ACCEPT
+		echo "已关闭UDP端口 $port"
+	fi
+
+	save_iptables_rules	
+	send_stats "已关闭端口"
+}
+
+
+
+allow_ip() {
+	local ip=$1
+	if [ -z "$ip" ]; then
+		echo "请提供IP地址或IP段"
+		return 1
+	fi
+
+	if ! sudo iptables -C INPUT -s $ip -j ACCEPT 2>/dev/null; then
+		sudo iptables -I INPUT 1 -s $ip -j ACCEPT
+		echo "已放行IP $ip"
+	fi
+
+	save_iptables_rules	
+	send_stats "已放行IP"	
+}
+
+
+block_ip() {
+	local ip=$1
+	if [ -z "$ip" ]; then
+		echo "请提供IP地址或IP段"
+		return 1
+	fi
+
+	if ! sudo iptables -C INPUT -s $ip -j DROP 2>/dev/null; then
+		sudo iptables -I INPUT 1 -s $ip -j DROP
+		echo "已阻止IP $ip"
+	fi
+
+	save_iptables_rules	
+	send_stats "已阻止IP"	
+}
+
+
+
+
+
+
 enable_ddos_defense() {
 	# 开启防御 DDoS
 	iptables -A DOCKER-USER -p tcp --syn -m limit --limit 500/s --limit-burst 100 -j ACCEPT
@@ -852,6 +936,127 @@ disable_ddos_defense() {
 
 	send_stats "关闭DDoS防御"
 }
+
+
+
+iptables_panel() {
+  root_use
+  save_iptables_rules
+  while true; do
+		  clear
+		  echo "高级防火墙管理"
+		  send_stats "高级防火墙管理"
+		  echo "------------------------"
+		  iptables -L INPUT
+		  echo ""
+		  echo "防火墙管理"
+		  echo "------------------------"
+		  echo "1.  开放指定端口                 2.  关闭指定端口"
+		  echo "3.  开放所有端口                 4.  关闭所有端口"
+		  echo "------------------------"
+		  echo "5.  IP白名单                  	 6.  IP黑名单"
+		  echo "7.  清除指定IP"
+		  echo "------------------------"
+		  echo "11. 允许PING                  	 12. 禁止PING"
+		  echo "------------------------"
+		  echo "13. 启动DDOS防御                 14. 关闭DDOS防御"
+		  echo "------------------------"
+		  echo "0. 返回上一级选单"
+		  echo "------------------------"
+		  read -e -p "请输入你的选择: " sub_choice
+		  case $sub_choice in
+			  1)
+				  read -e -p "请输入开放的端口号: " o_port
+				  open_port $o_port
+				  send_stats "开放指定端口"
+				  ;;
+			  2)
+				  read -e -p "请输入关闭的端口号: " c_port
+				  close_port $c_port
+				  send_stats "关闭指定端口"
+				  ;;
+			  3)
+				  # 开放所有端口
+				  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+				  iptables -F
+				  iptables -X
+				  iptables -P INPUT ACCEPT
+				  iptables -P FORWARD ACCEPT
+				  iptables -P OUTPUT ACCEPT
+				  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+				  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+				  iptables -A INPUT -i lo -j ACCEPT
+				  iptables -A FORWARD -i lo -j ACCEPT
+				  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
+				  iptables-save > /etc/iptables/rules.v4
+				  send_stats "开放所有端口"
+				  ;;
+			  4)
+				  # 关闭所有端口
+				  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
+				  iptables -F
+				  iptables -X
+				  iptables -P INPUT DROP
+				  iptables -P FORWARD DROP
+				  iptables -P OUTPUT ACCEPT
+				  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+				  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+				  iptables -A INPUT -i lo -j ACCEPT
+				  iptables -A FORWARD -i lo -j ACCEPT
+				  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
+				  iptables-save > /etc/iptables/rules.v4
+				  send_stats "关闭所有端口"
+				  ;;
+		  
+			  5)
+				  # IP 白名单
+				  read -e -p "请输入放行的IP或IP段: " o_ip
+				  allow_ip $o_ip
+				  ;;
+			  6)
+				  # IP 黑名单
+				  read -e -p "请输入封锁的IP或IP段: " c_ip
+				  block_ip $c_ip
+				  ;;
+			  7)
+				  # 清除指定 IP
+				  read -e -p "请输入清除的IP: " d_ip
+				  iptables -D INPUT -s $d_ip -j ACCEPT 2>/dev/null
+				  iptables -D INPUT -s $d_ip -j DROP 2>/dev/null
+				  iptables-save > /etc/iptables/rules.v4
+				  send_stats "清除指定IP"
+				  ;;
+			  11)
+				  # 允许 PING
+				  iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+				  iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
+				  iptables-save > /etc/iptables/rules.v4
+				  send_stats "允许PING"
+				  ;;
+			  12)
+				  # 禁用 PING
+				  iptables -D INPUT -p icmp --icmp-type echo-request -j ACCEPT 2>/dev/null
+				  iptables -D OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT 2>/dev/null
+				  iptables-save > /etc/iptables/rules.v4
+				  send_stats "禁用PING"
+				  ;;
+			  13)
+				  enable_ddos_defense
+				  ;;
+			  14)
+				  disable_ddos_defense
+				  ;;
+			  *)
+				  break  # 跳出循环，退出菜单
+				  ;;
+		  esac
+  done
+
+}
+
+
+
+
 
 
 
@@ -1539,11 +1744,7 @@ block_container_port() {
 		iptables -I DOCKER-USER -p udp -s 127.0.0.0/8 -d "$container_ip" -j ACCEPT
 	fi
 
-
-	echo "封禁其他所有 IP 访问 $container_ip"
-	echo "放行 IP $allowed_ip 访问 $container_ip"
-	echo "放行本地网络 127.0.0.0/8 访问 $container_ip"
-	echo "规则已成功添加到 DOCKER-USER 链。如果无效重启服务器后再试！"
+	echo "已阻止IP+端口访问该服务，如果无效重启服务器后再试！"
 }
 
 
@@ -1597,10 +1798,7 @@ clear_container_rules() {
 		iptables -D DOCKER-USER -p udp -s 127.0.0.0/8 -d "$container_ip" -j ACCEPT
 	fi
 
-	echo "清除封禁其他所有 IP 访问 $container_ip 的规则"
-	echo "清除放行 IP $allowed_ip 访问 $container_ip 的规则"
-	echo "清除放行本地网络 127.0.0.0/8 访问 $container_ip 的规则"
-	echo "所有与容器 IP $container_ip 相关的规则已清除。"
+	echo "已允许IP+端口访问该服务"
 }
 
 
@@ -1654,10 +1852,7 @@ block_host_port() {
 	fi
 
 
-	echo "允许本机访问端口 $port"
-	echo "允许 IP $allowed_ip 访问端口 $port"
-	echo "封禁所有其他 IP 访问端口 $port"
-	echo "规则已成功添加。如果无效，尝试重启服务器！"
+	echo "已阻止IP+端口访问该服务"
 }
 
 
@@ -1704,12 +1899,7 @@ clear_host_port_rules() {
 		iptables -D INPUT -p udp --dport "$port" -s "$allowed_ip" -j ACCEPT
 	fi
 
-
-
-	echo "清除允许本机访问端口 $port 的规则"
-	echo "清除允许 IP $allowed_ip 访问端口 $port 的规则"
-	echo "清除封禁所有其他 IP 访问端口 $port 的规则"
-	echo "所有与端口 $port 相关的规则已清除。"
+	echo "已允许IP+端口访问该服务"
 }
 
 
@@ -1777,6 +1967,7 @@ while true; do
 			send_stats "${docker_name}域名访问设置"
 			add_yuming
 			ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+			block_container_port "$docker_name" "$ipv4_address"
 			;;
 
 		6)
@@ -2499,13 +2690,8 @@ EOF
 	crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
 	(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
 
-	iptables -D INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -I INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -D INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -I INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -D INPUT -p tcp --dport 8056 -j ACCEPT 2>/dev/null
-	iptables -I INPUT -p tcp --dport 8056 -j ACCEPT 2>/dev/null
-	save_iptables_rules
+	open_port 8055
+	open_port 8056
 	
 }
 
@@ -2534,11 +2720,7 @@ EOF
 	crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
 	(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
 
-	iptables -D INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -I INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null	
-	iptables -D INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null
-	iptables -I INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null	
-	save_iptables_rules
+	open_port 8055
 
 }
 
@@ -2568,6 +2750,8 @@ EOF
 
 	tmux kill-session -t frpc >/dev/null 2>&1
 	tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
+	
+	open_port $local_port
 
 }
 
@@ -2774,10 +2958,9 @@ frps_panel() {
 				crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
 				tmux kill-session -t frps >/dev/null 2>&1
 				rm -rf /home/frp
-				iptables -D INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null
-				iptables -D INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null
-				iptables -D INPUT -p tcp --dport 8056 -j ACCEPT 2>/dev/null
-				save_iptables_rules
+				close_port 8055
+				close_port 8056
+
 				echo "应用已卸载"
 				;;
 			5)
@@ -2786,6 +2969,7 @@ frps_panel() {
 				add_yuming
 				read -e -p "请输入你的内网穿透服务端口: " frps_port
 				ldnmp_Proxy ${yuming} ${ipv4_address} ${frps_port}
+				block_host_port "$frps_port" "$ipv4_address"
 				;;
 			6)
 				echo "域名格式 example.com 不带https://"
@@ -2862,8 +3046,7 @@ frpc_panel() {
 				crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
 				tmux kill-session -t frpc >/dev/null 2>&1
 				rm -rf /home/frp
-				iptables -D INPUT -p tcp --dport 8055 -j ACCEPT 2>/dev/null
-				iptables -D INPUT -p udp --dport 8055 -j ACCEPT 2>/dev/null
+				close_port 8055
 				save_iptables_rules
 				echo "应用已卸载"
 				;;
@@ -3135,12 +3318,7 @@ new_ssh_port() {
 
   # 重启 SSH 服务
   restart_ssh
-
-  iptables -A INPUT -p tcp --dport "$new_port" -j ACCEPT
-  ip6tables -A INPUT -p tcp --dport "$new_port" -j ACCEPT
-
-  save_iptables_rules
-
+  open_port $new_port
   remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
 
   echo "SSH 端口已修改为: $new_port"
@@ -7324,6 +7502,7 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						block_container_port "$docker_name" "$ipv4_address"
 						;;
 
 					6)
@@ -7565,6 +7744,7 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						block_container_port "$docker_name" "$ipv4_address"
 						;;
 
 
@@ -7700,6 +7880,7 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						block_container_port "$docker_name" "$ipv4_address"
 						;;
 
 					6)
@@ -8390,6 +8571,7 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						block_container_port "$docker_name" "$ipv4_address"
 						;;
 
 					6)
@@ -8625,6 +8807,7 @@ linux_panel() {
 						send_stats "${docker_name}域名访问设置"
 						add_yuming
 						ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+						block_container_port "$docker_name" "$ipv4_address"
 						;;
 
 					6)
@@ -8883,6 +9066,7 @@ linux_Settings() {
 	  echo -e "${gl_kjlan}31.  ${gl_bai}切换系统语言                       ${gl_kjlan}32.  ${gl_bai}命令行美化工具 ${gl_huang}★${gl_bai}"
 	  echo -e "${gl_kjlan}33.  ${gl_bai}设置系统回收站                     ${gl_kjlan}34.  ${gl_bai}系统备份与恢复"
 	  echo -e "${gl_kjlan}35.  ${gl_bai}ssh远程连接工具                    ${gl_kjlan}36.  ${gl_bai}硬盘分区管理工具"
+	  echo -e "${gl_kjlan}37.  ${gl_bai}命令行历史记录"
 	  echo -e "${gl_kjlan}------------------------"
 	  echo -e "${gl_kjlan}41.  ${gl_bai}留言板                             ${gl_kjlan}66.  ${gl_bai}一条龙系统调优 ${gl_huang}★${gl_bai}"
 	  echo -e "${gl_kjlan}99.  ${gl_bai}重启服务器                         ${gl_kjlan}100. ${gl_bai}隐私与安全"
@@ -9384,134 +9568,7 @@ EOF
 			  ;;
 
 		  17)
-
-		  root_use
-		  save_iptables_rules
-		  while true; do
-				  clear
-				  echo "高级防火墙管理"
-				  send_stats "高级防火墙管理"
-				  echo "------------------------"
-				  iptables -L INPUT
-
-				  echo ""
-				  echo "防火墙管理"
-				  echo "------------------------"
-				  echo "1.  开放指定端口                 2.  关闭指定端口"
-				  echo "3.  开放所有端口                 4.  关闭所有端口"
-				  echo "------------------------"
-				  echo "5.  IP白名单                  	 6.  IP黑名单"
-				  echo "7.  清除指定IP"
-				  echo "------------------------"
-				  echo "11. 允许PING                  	 12. 禁止PING"
-				  echo "------------------------"
-				  echo "13. 启动DDOS防御                 14. 关闭DDOS防御"
-				  echo "------------------------"
-				  echo "0. 返回上一级选单"
-				  echo "------------------------"
-				  read -e -p "请输入你的选择: " sub_choice
-
-				  case $sub_choice in
-					  1)
-						   read -e -p "请输入开放的端口号: " o_port
-						   iptables -A INPUT -p tcp --dport $o_port -j ACCEPT
-						   iptables -A INPUT -p udp --dport $o_port -j ACCEPT
-						   iptables-save > /etc/iptables/rules.v4
-						   send_stats "开放指定端口"
-
-						  ;;
-					  2)
-						  read -e -p "请输入关闭的端口号: " c_port
-						  iptables -D INPUT -p tcp --dport $c_port -j ACCEPT
-						  iptables -D INPUT -p udp --dport $c_port -j ACCEPT
-						  iptables-save > /etc/iptables/rules.v4
-						  ;;
-
-					  3)
-						  # 开放所有端口
-						  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
-						  iptables -F
-						  iptables -X
-						  iptables -P INPUT ACCEPT
-						  iptables -P FORWARD ACCEPT
-						  iptables -P OUTPUT ACCEPT
-						  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-						  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-						  iptables -A INPUT -i lo -j ACCEPT
-						  iptables -A FORWARD -i lo -j ACCEPT
-						  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "开放所有端口"
-						  ;;
-
-					  4)
-						  # 关闭所有端口
-						  current_port=$(grep -E '^ *Port [0-9]+' /etc/ssh/sshd_config | awk '{print $2}')
-						  iptables -F
-						  iptables -X
-						  iptables -P INPUT DROP
-						  iptables -P FORWARD DROP
-						  iptables -P OUTPUT ACCEPT
-						  iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-						  iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-						  iptables -A INPUT -i lo -j ACCEPT
-						  iptables -A FORWARD -i lo -j ACCEPT
-						  iptables -A INPUT -p tcp --dport $current_port -j ACCEPT
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "关闭所有端口"
-						  ;;
-
-				  
-					  5)
-						  # IP 白名单
-						  read -e -p "请输入放行的IP: " o_ip
-						  iptables -A INPUT -s $o_ip -j ACCEPT
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "IP白名单"
-						  ;;
-					  6)
-						  # IP 黑名单
-						  read -e -p "请输入封锁的IP: " c_ip
-						  iptables -A INPUT -s $c_ip -j DROP
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "IP黑名单"
-						  ;;
-					  7)
-						  # 清除指定 IP
-						  read -e -p "请输入清除的IP: " d_ip
-						  iptables -D INPUT -s $d_ip -j ACCEPT 2>/dev/null
-						  iptables -D INPUT -s $d_ip -j DROP 2>/dev/null
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "清除指定IP"
-						  ;;
-					  11)
-						  # 允许 PING
-						  iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-						  iptables -A OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "允许PING"
-						  ;;
-					  12)
-						  # 禁用 PING
-						  iptables -D INPUT -p icmp --icmp-type echo-request -j ACCEPT 2>/dev/null
-						  iptables -D OUTPUT -p icmp --icmp-type echo-reply -j ACCEPT 2>/dev/null
-						  iptables-save > /etc/iptables/rules.v4
-						  send_stats "禁用PING"
-						  ;;
-
-					  13)
-						  enable_ddos_defense
-						  ;;
-					  14)
-						  disable_ddos_defense
-						  ;;
-
-					  *)
-						  break  # 跳出循环，退出菜单
-						  ;;
-
-				  esac
-		  done
+			  iptables_panel
 
 			  ;;
 
@@ -9973,6 +10030,18 @@ EOF
 		  36)
 			  disk_manager
 			  ;;
+		  37)
+			  clear
+			  send_stats "命令行历史记录"
+			  get_history_file() {
+				  for file in "$HOME"/.bash_history "$HOME"/.ash_history "$HOME"/.zsh_history "$HOME"/.local/share/fish/fish_history; do
+					  [ -f "$file" ] && { echo "$file"; return; }
+				  done
+				  return 1
+			  }
+			  
+			  history_file=$(get_history_file) && cat -n "$history_file"			  
+			  ;;			  
 		  41)
 			clear
 			send_stats "留言板"
@@ -10771,6 +10840,12 @@ echo "LDNMP站点管理       k web"
 echo "LDNMP缓存清理       k web cache"
 echo "安装WordPress       k wp |k wordpress |k wp xxx.com"
 echo "安装反向代理        k fd |k rp |k 反代 |k fd xxx.com"
+echo "防火墙面板          k fhq |k 防火墙"
+echo "开放端口            k dkdk 8080 |k 打开端口 8080"
+echo "关闭端口            k gbdk 7800 |k 关闭端口 7800"
+echo "放行IP              k fxip 127.0.0.0/8 |k 放行IP 127.0.0.0/8"
+echo "阻止IP              k zzip 177.5.25.36 |k 阻止IP 177.5.25.36"
+
 
 }
 
@@ -10857,7 +10932,29 @@ else
 			;;
 
 
+		打开端口|dkdk)
+			shift
+			open_port "$@"
+			;;
 
+		关闭端口|gbdk)
+			shift
+			close_port "$@"
+			;;
+
+		放行IP|fxip)
+			shift
+			allow_ip "$@"
+			;;
+
+		阻止IP|zzip)
+			shift
+			block_ip "$@"
+			;;
+
+		防火墙|fhq)
+			iptables_panel
+			;;
 
 		status|状态)
 			shift
