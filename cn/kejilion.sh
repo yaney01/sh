@@ -1513,10 +1513,10 @@ web_del() {
 
 	for yuming in $yuming_list; do
 		echo "正在删除域名: $yuming"
-		rm -r /home/web/html/$yuming
-		rm /home/web/conf.d/$yuming.conf
-		rm /home/web/certs/${yuming}_key.pem
-		rm /home/web/certs/${yuming}_cert.pem
+		rm -r /home/web/html/$yuming > /dev/null 2>&1
+		rm /home/web/conf.d/$yuming.conf > /dev/null 2>&1
+		rm /home/web/certs/${yuming}_key.pem > /dev/null 2>&1
+		rm /home/web/certs/${yuming}_cert.pem > /dev/null 2>&1
 
 		# 将域名转换为数据库名
 		dbname=$(echo "$yuming" | sed -e 's/[^A-Za-z0-9]/_/g')
@@ -1711,8 +1711,6 @@ block_container_port() {
 		return 1
 	fi
 
-	echo "容器 $container_name_or_id 的 IP 地址为: $container_ip"
-
 	# 检查并封禁其他所有 IP
 	if ! iptables -C DOCKER-USER -p tcp -d "$container_ip" -j DROP &>/dev/null; then
 		iptables -I DOCKER-USER -p tcp -d "$container_ip" -j DROP
@@ -1745,7 +1743,7 @@ block_container_port() {
 		iptables -I DOCKER-USER -p udp -s 127.0.0.0/8 -d "$container_ip" -j ACCEPT
 	fi
 
-	echo "已阻止IP+端口访问该服务，如果无效重启服务器后再试！"
+	echo "已阻止IP+端口访问该服务"
 	save_iptables_rules
 }
 
@@ -1763,8 +1761,6 @@ clear_container_rules() {
 		echo "错误：无法获取容器 $container_name_or_id 的 IP 地址。请检查容器名称或ID是否正确。"
 		return 1
 	fi
-
-	echo "容器 $container_name_or_id 的 IP 地址为: $container_ip"
 
 	# 清除封禁其他所有 IP 的规则
 	if iptables -C DOCKER-USER -p tcp -d "$container_ip" -j DROP &>/dev/null; then
@@ -1929,7 +1925,7 @@ while true; do
 	echo "------------------------"
 	echo "1. 安装              2. 更新            3. 卸载"
 	echo "------------------------"
-	echo "5. 域名访问          6. 删除域名访问"
+	echo "5. 添加域名访问      6. 删除域名访问"
 	echo "7. 允许IP+端口访问   8. 阻止IP+端口访问"
 	echo "------------------------"
 	echo "0. 返回上一级"
@@ -7487,7 +7483,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 使用"
 				echo "------------------------"
-				echo "5. 域名访问           6. 删除域名访问"
+				echo "5. 添加域名访问       6. 删除域名访问"
 				echo "7. 允许IP+端口访问    8. 阻止IP+端口访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
@@ -7697,7 +7693,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装             2. 更新             3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问         6. 删除域名访问"
+				echo "5. 添加域名访问     6. 删除域名访问"
 				echo "7. 允许IP+端口访问  8. 阻止IP+端口访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
@@ -7837,7 +7833,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装             2. 更新             3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问         6. 删除域名访问"
+				echo "5. 添加域名访问     6. 删除域名访问"
 				echo "7. 允许IP+端口访问  8. 阻止IP+端口访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
@@ -8526,7 +8522,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装             2. 更新             3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问         6. 删除域名访问"
+				echo "5. 添加域名访问     6. 删除域名访问"
 				echo "7. 允许IP+端口访问  8. 阻止IP+端口访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
@@ -8771,7 +8767,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装             2. 更新             3. 卸载"
 				echo "------------------------"
-				echo "5. 域名访问         6. 删除域名访问"
+				echo "5. 添加域名访问     6. 删除域名访问"
 				echo "7. 允许IP+端口访问  8. 阻止IP+端口访问"
 				echo "------------------------"
 				echo "0. 返回上一级"
