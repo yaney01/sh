@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.7.3"
+sh_v="3.7.4"
 
 
 gl_hui='\e[37m'
@@ -801,16 +801,18 @@ save_iptables_rules() {
 	mkdir -p /etc/iptables
 	touch /etc/iptables/rules.v4
 	iptables-save > /etc/iptables/rules.v4
+	check_crontab_installed > /dev/null 2>&1
 	crontab -l | grep -v 'iptables-restore' | crontab - > /dev/null 2>&1
 	(crontab -l ; echo '@reboot iptables-restore < /etc/iptables/rules.v4') | crontab - > /dev/null 2>&1
+
 }
 
 
 
 
 iptables_open() {
-
-	save_iptables_rules
+	install iptables > /dev/null 2>&1
+	save_iptables_rules > /dev/null 2>&1
 	iptables -P INPUT ACCEPT
 	iptables -P FORWARD ACCEPT
 	iptables -P OUTPUT ACCEPT
@@ -826,80 +828,95 @@ iptables_open() {
 
 
 open_port() {
-	local port=$1
-	if [ -z "$port" ]; then
-		echo "请提供端口号"
+	local ports=($@)  # 将传入的参数转换为数组
+	if [ ${#ports[@]} -eq 0 ]; then
+		echo "请提供至少一个端口号"
 		return 1
 	fi
 
-	if ! sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
-		sudo iptables -I INPUT 1 -p tcp --dport $port -j ACCEPT
-		echo "已打开TCP端口 $port"
-	fi
+	install iptables > /dev/null 2>&1
 
-	if ! sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
-		sudo iptables -I INPUT 1 -p udp --dport $port -j ACCEPT
-		echo "已打开UDP端口 $port"
-	fi
+	for port in "${ports[@]}"; do
+		if ! sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
+			sudo iptables -I INPUT 1 -p tcp --dport $port -j ACCEPT
+		fi
 
-	save_iptables_rules
+		if ! sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
+			sudo iptables -I INPUT 1 -p udp --dport $port -j ACCEPT
+		fi
+	done
+
+	save_iptables_rules > /dev/null 2>&1
+	echo "已打开端口 $port"
 	send_stats "已打开端口"
 }
 
 
 close_port() {
-	local port=$1
-	if [ -z "$port" ]; then
-		echo "请提供端口号"
+	local ports=($@)  # 将传入的参数转换为数组
+	if [ ${#ports[@]} -eq 0 ]; then
+		echo "请提供至少一个端口号"
 		return 1
 	fi
 
-	if sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
-		sudo iptables -D INPUT -p tcp --dport $port -j ACCEPT
-		echo "已关闭TCP端口 $port"
-	fi
+	install iptables > /dev/null 2>&1
 
-	if sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
-		sudo iptables -D INPUT -p udp --dport $port -j ACCEPT
-		echo "已关闭UDP端口 $port"
-	fi
+	for port in "${ports[@]}"; do
+		if sudo iptables -C INPUT -p tcp --dport $port -j ACCEPT 2>/dev/null; then
+			sudo iptables -D INPUT -p tcp --dport $port -j ACCEPT
+		fi
 
-	save_iptables_rules
+		if sudo iptables -C INPUT -p udp --dport $port -j ACCEPT 2>/dev/null; then
+			sudo iptables -D INPUT -p udp --dport $port -j ACCEPT
+		fi
+	done
+
+	save_iptables_rules > /dev/null 2>&1
+	echo "已关闭端口 $port"
 	send_stats "已关闭端口"
+
 }
 
 
 
 allow_ip() {
-	local ip=$1
-	if [ -z "$ip" ]; then
-		echo "请提供IP地址或IP段"
+	local ips=($@)  # 将传入的参数转换为数组
+	if [ ${#ips[@]} -eq 0 ]; then
+		echo "请提供至少一个IP地址或IP段"
 		return 1
 	fi
 
-	if ! sudo iptables -C INPUT -s $ip -j ACCEPT 2>/dev/null; then
-		sudo iptables -I INPUT 1 -s $ip -j ACCEPT
-		echo "已放行IP $ip"
-	fi
+	install iptables > /dev/null 2>&1
 
-	save_iptables_rules
+	for ip in "${ips[@]}"; do
+		if ! sudo iptables -C INPUT -s $ip -j ACCEPT 2>/dev/null; then
+			sudo iptables -I INPUT 1 -s $ip -j ACCEPT
+			echo "已放行IP $ip"
+		fi
+	done
+
+	save_iptables_rules > /dev/null 2>&1
 	send_stats "已放行IP"
 }
 
 
 block_ip() {
-	local ip=$1
-	if [ -z "$ip" ]; then
-		echo "请提供IP地址或IP段"
+	local ips=($@)  # 将传入的参数转换为数组
+	if [ ${#ips[@]} -eq 0 ]; then
+		echo "请提供至少一个IP地址或IP段"
 		return 1
 	fi
 
-	if ! sudo iptables -C INPUT -s $ip -j DROP 2>/dev/null; then
-		sudo iptables -I INPUT 1 -s $ip -j DROP
-		echo "已阻止IP $ip"
-	fi
+	install iptables > /dev/null 2>&1
 
-	save_iptables_rules
+	for ip in "${ips[@]}"; do
+		if ! sudo iptables -C INPUT -s $ip -j DROP 2>/dev/null; then
+			sudo iptables -I INPUT 1 -s $ip -j DROP
+			echo "已阻止IP $ip"
+		fi
+	done
+
+	save_iptables_rules > /dev/null 2>&1
 	send_stats "已阻止IP"
 }
 
@@ -941,6 +958,7 @@ disable_ddos_defense() {
 
 iptables_panel() {
   root_use
+  install iptables > /dev/null 2>&1
   save_iptables_rules
   while true; do
 		  clear
@@ -1212,7 +1230,7 @@ install_certbot() {
 	curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/auto_cert_renewal.sh
 	chmod +x auto_cert_renewal.sh
 
-	check_crontab_installed
+	check_crontab_installed > /dev/null 2>&1
 	local cron_job="0 0 * * * ~/auto_cert_renewal.sh"
 	crontab -l 2>/dev/null | grep -vF "$cron_job" | crontab -
 	(crontab -l 2>/dev/null; echo "$cron_job") | crontab -
@@ -1711,6 +1729,8 @@ block_container_port() {
 		return 1
 	fi
 
+	install iptables > /dev/null 2>&1
+
 	# 检查并封禁其他所有 IP
 	if ! iptables -C DOCKER-USER -p tcp -d "$container_ip" -j DROP &>/dev/null; then
 		iptables -I DOCKER-USER -p tcp -d "$container_ip" -j DROP
@@ -1744,7 +1764,7 @@ block_container_port() {
 	fi
 
 	echo "已阻止IP+端口访问该服务"
-	save_iptables_rules
+	save_iptables_rules > /dev/null 2>&1
 }
 
 
@@ -1761,6 +1781,8 @@ clear_container_rules() {
 		echo "错误：无法获取容器 $container_name_or_id 的 IP 地址。请检查容器名称或ID是否正确。"
 		return 1
 	fi
+
+	install iptables > /dev/null 2>&1
 
 	# 清除封禁其他所有 IP 的规则
 	if iptables -C DOCKER-USER -p tcp -d "$container_ip" -j DROP &>/dev/null; then
@@ -1797,7 +1819,7 @@ clear_container_rules() {
 	fi
 
 	echo "已允许IP+端口访问该服务"
-	save_iptables_rules
+	save_iptables_rules > /dev/null 2>&1
 }
 
 
@@ -1815,6 +1837,7 @@ block_host_port() {
 		return 1
 	fi
 
+	install iptables > /dev/null 2>&1
 
 	# 拒绝其他所有 IP 访问
 	if ! iptables -C INPUT -p tcp --dport "$port" -j DROP &>/dev/null; then
@@ -1852,7 +1875,7 @@ block_host_port() {
 
 
 	echo "已阻止IP+端口访问该服务"
-	save_iptables_rules
+	save_iptables_rules > /dev/null 2>&1
 }
 
 
@@ -1867,6 +1890,8 @@ clear_host_port_rules() {
 		echo "用法: clear_host_port_rules <端口号> <允许的IP>"
 		return 1
 	fi
+
+	install iptables > /dev/null 2>&1
 
 	# 清除封禁所有其他 IP 访问的规则
 	if iptables -C INPUT -p tcp --dport "$port" -j DROP &>/dev/null; then
@@ -1900,7 +1925,7 @@ clear_host_port_rules() {
 	fi
 
 	echo "已允许IP+端口访问该服务"
-	save_iptables_rules
+	save_iptables_rules > /dev/null 2>&1
 
 }
 
@@ -2688,12 +2713,11 @@ EOF
 	install tmux
 	tmux kill-session -t frps >/dev/null 2>&1
 	tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"
-	check_crontab_installed
+	check_crontab_installed > /dev/null 2>&1
 	crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
 	(crontab -l ; echo '@reboot tmux new -d -s "frps" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frps -c frps.toml"') | crontab - > /dev/null 2>&1
 
-	open_port 8055
-	open_port 8056
+	open_port 8055 8056
 
 }
 
@@ -2718,7 +2742,7 @@ EOF
 	install tmux
 	tmux kill-session -t frpc >/dev/null 2>&1
 	tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"
-	check_crontab_installed
+	check_crontab_installed > /dev/null 2>&1
 	crontab -l | grep -v 'frpc' | crontab - > /dev/null 2>&1
 	(crontab -l ; echo '@reboot tmux new -d -s "frpc" "cd /home/frp/frp_0.61.0_linux_amd64 && ./frpc -c frpc.toml"') | crontab - > /dev/null 2>&1
 
@@ -2960,8 +2984,7 @@ frps_panel() {
 				crontab -l | grep -v 'frps' | crontab - > /dev/null 2>&1
 				tmux kill-session -t frps >/dev/null 2>&1
 				rm -rf /home/frp
-				close_port 8055
-				close_port 8056
+				close_port 8055 8056
 
 				echo "应用已卸载"
 				;;
@@ -3304,20 +3327,45 @@ restart_ssh() {
 }
 
 
-new_ssh_port() {
 
+correct_ssh_config() {
+	
+	local sshd_config="/etc/ssh/sshd_config"
+	
+	# 如果找到 PasswordAuthentication 设置为 yes
+	if grep -Eq "^PasswordAuthentication\s+yes" "$sshd_config"; then
+		sed -i 's/^\s*#\?\s*PermitRootLogin.*/PermitRootLogin yes/g' "$sshd_config"
+		sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' "$sshd_config"
+	fi
+
+	# 如果找到 PubkeyAuthentication 设置为 yes
+	if grep -Eq "^PubkeyAuthentication\s+yes" "$sshd_config"; then
+		sed -i -e 's/^\s*#\?\s*PermitRootLogin .*/PermitRootLogin prohibit-password/' \
+			   -e 's/^\s*#\?\s*PasswordAuthentication .*/PasswordAuthentication no/' \
+			   -e 's/^\s*#\?\s*PubkeyAuthentication .*/PubkeyAuthentication yes/' \
+			   -e 's/^\s*#\?\s*ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' "$sshd_config"
+	fi
+
+	# 如果 PasswordAuthentication 和 PubkeyAuthentication 都没有匹配，则设置默认值
+	if ! grep -Eq "^PasswordAuthentication\s+yes" "$sshd_config" && ! grep -Eq "^PubkeyAuthentication\s+yes" "$sshd_config"; then
+		sed -i 's/^\s*#\?\s*PermitRootLogin.*/PermitRootLogin yes/g' "$sshd_config"
+		sed -i 's/^\s*#\?\s*PasswordAuthentication.*/PasswordAuthentication yes/g' "$sshd_config"
+	fi
+
+}
+
+
+new_ssh_port() {
 
   # 备份 SSH 配置文件
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
 
   sed -i 's/^\s*#\?\s*Port/Port/' /etc/ssh/sshd_config
-
-  # 替换 SSH 配置文件中的端口号
   sed -i "s/Port [0-9]\+/Port $new_port/g" /etc/ssh/sshd_config
 
+  correct_ssh_config
   rm -rf /etc/ssh/sshd_config.d/* /etc/ssh/ssh_config.d/*
 
-  # 重启 SSH 服务
   restart_ssh
   open_port $new_port
   remove iptables-persistent ufw firewalld iptables-services > /dev/null 2>&1
@@ -6747,12 +6795,12 @@ linux_ldnmp() {
 
 	  case $dingshi in
 		  1)
-			  check_crontab_installed
+			  check_crontab_installed > /dev/null 2>&1
 			  read -e -p "选择每周备份的星期几 (0-6，0代表星期日): " weekday
 			  (crontab -l ; echo "0 0 * * $weekday ./${useip}_beifen.sh") | crontab - > /dev/null 2>&1
 			  ;;
 		  2)
-			  check_crontab_installed
+			  check_crontab_installed > /dev/null 2>&1
 			  read -e -p "选择每天备份的时间（小时，0-23）: " hour
 			  (crontab -l ; echo "0 $hour * * * ./${useip}_beifen.sh") | crontab - > /dev/null 2>&1
 			  ;;
@@ -6937,7 +6985,7 @@ linux_ldnmp() {
 
 					  cd ~
 					  install jq bc
-					  check_crontab_installed
+					  check_crontab_installed > /dev/null 2>&1
 					  curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/CF-Under-Attack.sh
 					  chmod +x CF-Under-Attack.sh
 					  sed -i "s/AAAA/$cfuser/g" ~/CF-Under-Attack.sh
@@ -9648,7 +9696,7 @@ EOF
 		  send_stats "定时任务管理"
 			  while true; do
 				  clear
-				  check_crontab_installed
+				  check_crontab_installed > /dev/null 2>&1
 				  clear
 				  echo "定时任务列表"
 				  crontab -l
@@ -9849,7 +9897,7 @@ EOF
 					chmod +x ~/Limiting_Shut_down.sh
 					sed -i "s/110/$rx_threshold_gb/g" ~/Limiting_Shut_down.sh
 					sed -i "s/120/$tx_threshold_gb/g" ~/Limiting_Shut_down.sh
-					check_crontab_installed
+					check_crontab_installed > /dev/null 2>&1
 					crontab -l | grep -v '~/Limiting_Shut_down.sh' | crontab -
 					(crontab -l ; echo "* * * * * ~/Limiting_Shut_down.sh") | crontab - > /dev/null 2>&1
 					crontab -l | grep -v 'reboot' | crontab -
@@ -9858,7 +9906,7 @@ EOF
 					send_stats "限流关机已设置"
 					;;
 				  2)
-					check_crontab_installed
+					check_crontab_installed > /dev/null 2>&1
 					crontab -l | grep -v '~/Limiting_Shut_down.sh' | crontab -
 					crontab -l | grep -v 'reboot' | crontab -
 					rm ~/Limiting_Shut_down.sh
@@ -9938,7 +9986,7 @@ EOF
 				  send_stats "电报预警启用"
 				  cd ~
 				  install nano tmux bc jq
-				  check_crontab_installed
+				  check_crontab_installed > /dev/null 2>&1
 				  if [ -f ~/TG-check-notify.sh ]; then
 					  chmod +x ~/TG-check-notify.sh
 					  nano ~/TG-check-notify.sh
@@ -10708,7 +10756,7 @@ while true; do
 			else
 				SH_Update_task="curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh"
 			fi
-			check_crontab_installed
+			check_crontab_installed > /dev/null 2>&1
 			(crontab -l | grep -v "kejilion.sh") | crontab -
 			(crontab -l 2>/dev/null; echo "0 2 * * * bash -c \"$SH_Update_task\"") | crontab -
 			echo -e "${gl_lv}自动更新已开启，每天凌晨2点脚本会自动更新！${gl_bai}"
