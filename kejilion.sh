@@ -2059,9 +2059,9 @@ done
 docker_app_plus() {
 	send_stats "$app_name"
 	while true; do
+		clear
 		check_docker_app
 		check_docker_image_update $docker_name
-		clear
 		echo -e "$app_name $check_docker $update_status"
 		echo "$app_text"
 		echo "$app_url"
@@ -7906,7 +7906,7 @@ linux_panel() {
 
 			docker_app_update() {
 				cd /home/docker/cloud/ && docker compose down --rmi all
-				docker_app_install
+				cd /home/docker/cloud/ && docker compose up -d			
 			}
 
 
@@ -8723,7 +8723,7 @@ linux_panel() {
 
 			docker_app_install() {
 				install git
-				mkdir -p  /home/docker/ && cd /home/docker/ && git clone  ${gh_proxy}github.com/langgenius/dify.git && cd dify/docker && cp .env.example .env
+				mkdir -p  /home/docker/ && cd /home/docker/ && git clone ${gh_proxy}github.com/langgenius/dify.git && cd dify/docker && cp .env.example .env
 				sed -i 's/^EXPOSE_NGINX_PORT=.*/EXPOSE_NGINX_PORT=8058/; s/^EXPOSE_NGINX_SSL_PORT=.*/EXPOSE_NGINX_SSL_PORT=8858/' /home/docker/dify/docker/.env
 				docker compose up -d
 				clear
@@ -8733,7 +8733,10 @@ linux_panel() {
 
 			docker_app_update() {
 				cd  /home/docker/dify/docker/ && docker compose down --rmi all
-				docker_app_install
+				cd  /home/docker/dify/
+				git pull origin main
+				sed -i 's/^EXPOSE_NGINX_PORT=.*/EXPOSE_NGINX_PORT=8058/; s/^EXPOSE_NGINX_SSL_PORT=.*/EXPOSE_NGINX_SSL_PORT=8858/' /home/docker/dify/docker/.env
+				cd  /home/docker/dify/docker/ && docker compose up -d				
 			}
 
 			docker_app_uninstall() {
