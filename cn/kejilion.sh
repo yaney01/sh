@@ -1,5 +1,5 @@
 #!/bin/bash
-sh_v="3.7.8"
+sh_v="3.7.9"
 
 
 gl_hui='\e[37m'
@@ -10,7 +10,6 @@ gl_lan='\033[34m'
 gl_bai='\033[0m'
 gl_zi='\033[35m'
 gl_kjlan='\033[96m'
-
 
 
 canshu="CN"
@@ -1982,7 +1981,7 @@ while true; do
 	echo "5. 添加域名访问      6. 删除域名访问"
 	echo "7. 允许IP+端口访问   8. 阻止IP+端口访问"
 	echo "------------------------"
-	echo "0. 返回上一级"
+	echo "0. 返回上一级选单"
 	echo "------------------------"
 	read -e -p "请输入你的选择: " choice
 	 case $choice in
@@ -2075,7 +2074,7 @@ docker_app_plus() {
 		echo "5. 添加域名访问     6. 删除域名访问"
 		echo "7. 允许IP+端口访问  8. 阻止IP+端口访问"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "0. 返回上一级选单"
 		echo "------------------------"
 		read -e -p "输入你的选择: " choice
 		case $choice in
@@ -2685,7 +2684,7 @@ while true; do
 	echo "------------------------"
 	echo "1. 安装            2. 管理            3. 卸载"
 	echo "------------------------"
-	echo "0. 返回上一级"
+	echo "0. 返回上一级选单"
 	echo "------------------------"
 	read -e -p "请输入你的选择: " choice
 	 case $choice in
@@ -3042,7 +3041,7 @@ frps_panel() {
 		echo "------------------------"
 		echo "7. 允许IP+端口访问       8. 阻止IP+端口访问"
 		echo "------------------------"
-		echo "00. 刷新服务状态         0. 返回上一级"
+		echo "00. 刷新服务状态         0. 返回上一级选单"
 		echo "------------------------"
 		read -e -p "输入你的选择: " choice
 		case $choice in
@@ -3128,7 +3127,7 @@ frpc_panel() {
 		echo "------------------------"
 		echo "4. 添加对外服务       5. 删除对外服务       6. 手动配置服务"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "0. 返回上一级选单"
 		echo "------------------------"
 		read -e -p "输入你的选择: " choice
 		case $choice in
@@ -3366,7 +3365,7 @@ while true; do
 	echo " v6: 2400:3200::1 2400:da00::6666"
 	echo "3. 手动编辑DNS配置"
 	echo "------------------------"
-	echo "0. 返回上一级"
+	echo "0. 返回上一级选单"
 	echo "------------------------"
 	read -e -p "请输入你的选择: " Limiting
 	case "$Limiting" in
@@ -4357,7 +4356,7 @@ Kernel_optimize() {
 	  echo "5. 游戏服优化模式：     针对游戏服务器进行优化，提高并发处理能力和响应速度。"
 	  echo "6. 还原默认设置：       将系统设置还原为默认配置。"
 	  echo "--------------------"
-	  echo "0. 返回上一级"
+	  echo "0. 返回上一级选单"
 	  echo "--------------------"
 	  read -e -p "请输入你的选择: " sub_choice
 	  case $sub_choice in
@@ -4461,7 +4460,7 @@ while true; do
   echo "------------------------"
   echo "1. 英文          2. 简体中文          3. 繁体中文"
   echo "------------------------"
-  echo "0. 返回上一级"
+  echo "0. 返回上一级选单"
   echo "------------------------"
   read -e -p "输入你的选择: " choice
 
@@ -4522,7 +4521,7 @@ shell_bianse() {
 	echo -e "6. \033[1;33mroot \033[1;34mlocalhost \033[1;35m~ \033[0m${gl_bai}#"
 	echo -e "7. root localhost ~ #"
 	echo "------------------------"
-	echo "0. 返回上一级"
+	echo "0. 返回上一级选单"
 	echo "------------------------"
 	read -e -p "输入你的选择: " choice
 
@@ -4592,7 +4591,7 @@ linux_trash() {
 	echo "1. 启用回收站          2. 关闭回收站"
 	echo "3. 还原内容            4. 清空回收站"
 	echo "------------------------"
-	echo "0. 返回上一级"
+	echo "0. 返回上一级选单"
 	echo "------------------------"
 	read -e -p "输入你的选择: " choice
 
@@ -4761,7 +4760,7 @@ linux_backup() {
 		echo "------------------------"
 		echo "1. 创建备份        2. 恢复备份        3. 删除备份"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "0. 返回上一级选单"
 		echo "------------------------"
 		read -e -p "请输入你的选择: " choice
 		case $choice in
@@ -4940,7 +4939,7 @@ ssh_manager() {
 		list_connections
 		echo "1. 创建新连接        2. 使用连接        3. 删除连接"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "0. 返回上一级选单"
 		echo "------------------------"
 		read -e -p "请输入你的选择: " choice
 		case $choice in
@@ -5111,7 +5110,7 @@ disk_manager() {
 		echo "1. 挂载分区        2. 卸载分区        3. 查看已挂载分区"
 		echo "4. 格式化分区      5. 检查分区状态"
 		echo "------------------------"
-		echo "0. 返回上一级"
+		echo "0. 返回上一级选单"
 		echo "------------------------"
 		read -p "请输入你的选择: " choice
 		case $choice in
@@ -5149,8 +5148,8 @@ add_task() {
 	echo "---------------------------------"
 	read -e -p "请输入任务名称: " name
 	read -e -p "请输入本地目录: " local_path
-	read -e -p "请输入远程用户@IP: " remote
 	read -e -p "请输入远程目录: " remote_path
+	read -e -p "请输入远程用户@IP: " remote
 	read -e -p "请输入 SSH 端口 (默认 22): " port
 	port=${port:-22}
 
@@ -5236,10 +5235,21 @@ delete_task() {
 	echo "任务已删除!"
 }
 
+
+
 # 执行任务
 run_task() {
 	send_stats "执行同步任务"
-	read -e -p "请输入要执行的任务编号: " num
+
+	CONFIG_FILE="$HOME/.rsync_tasks"
+	CRON_FILE="$HOME/.rsync_cron"
+
+	# 兼容参数调用，如果有参数则直接使用，否则提示输入
+	if [[ -n "$1" ]]; then
+		num="$1"
+	else
+		read -e -p "请输入要执行的任务编号: " num
+	fi
 
 	local task=$(sed -n "${num}p" "$CONFIG_FILE")
 	if [[ -z "$task" ]]; then
@@ -5290,41 +5300,97 @@ run_task() {
 }
 
 
+# 添加定时任务
+schedule_task() {
+
+	read -e -p "请输入要定时同步的任务编号: " num
+	if ! [[ "$num" =~ ^[0-9]+$ ]]; then
+		echo "错误: 请输入有效的任务编号！"
+		return
+	fi
+
+	echo "请选择定时执行间隔："
+	echo "1) 每小时执行一次"
+	echo "2) 每天执行一次"
+	echo "3) 每周执行一次"
+	read -e -p "请输入选项 (1/2/3): " interval
+
+	local random_minute=$(shuf -i 0-59 -n 1)  # 生成 0-59 之间的随机分钟数
+	local cron_time=""
+	case "$interval" in
+		1) cron_time="$random_minute * * * *" ;;  # 每小时，随机分钟执行
+		2) cron_time="$random_minute 0 * * *" ;;  # 每天，随机分钟执行
+		3) cron_time="$random_minute 0 * * 1" ;;  # 每周，随机分钟执行
+		*) echo "错误: 请输入有效的选项！" ; return ;;
+	esac
+
+	local cron_job="$cron_time k rsync_run $num"
+	local cron_job="$cron_time k rsync_run $num"
+
+	# 检查是否已存在相同任务
+	if crontab -l | grep -q "k rsync_run $num"; then
+		echo "错误: 该任务的定时同步已存在！"
+		return
+	fi
+
+	# 添加到用户的 crontab
+	(crontab -l 2>/dev/null; echo "$cron_job") | crontab -
+	echo "定时任务已添加: $cron_job"
+}
+
+# 查看定时任务
+view_tasks() {
+	echo "当前的定时任务:"
+	echo "---------------------------------"
+	crontab -l | grep "k rsync_run"
+	echo "---------------------------------"
+}
+
+# 删除定时任务
+delete_task_schedule() {
+	read -e -p "请输入要删除的任务编号: " num
+	if ! [[ "$num" =~ ^[0-9]+$ ]]; then
+		echo "错误: 请输入有效的任务编号！"
+		return
+	fi
+
+	crontab -l | grep -v "k rsync_run $num" | crontab -
+	echo "已删除任务编号 $num 的定时任务"
+}
+
+
 # 任务管理主菜单
 rsync_manager() {
 	CONFIG_FILE="$HOME/.rsync_tasks"
 	CRON_FILE="$HOME/.rsync_cron"
+
 	while true; do
 		clear
 		echo "Rsync 远程同步工具"
 		echo "远程目录之间同步，支持增量同步，高效稳定。"
 		echo "---------------------------------"
 		list_tasks
-		echo "1. 创建新任务    2. 执行任务    3. 删除任务"
+		echo
+		view_tasks
+		echo
+		echo "1. 创建新任务         2. 执行任务         3. 删除任务"
+		echo "4. 添加定时任务       5. 删除定时任务"
 		echo "---------------------------------"
-		echo "0. 退出"
+		echo "0. 返回上一级选单"
 		echo "---------------------------------"
 		read -e -p "请输入你的选择: " choice
 		case $choice in
 			1) add_task ;;
 			2) run_task ;;
 			3) delete_task ;;
+			4) schedule_task ;;
+			5) delete_task_schedule ;;
 			0) break ;;
 			*) echo "无效的选择，请重试。" ;;
 		esac
 		read -p "按回车键继续..."
 	done
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -7145,7 +7211,7 @@ linux_ldnmp() {
 			  echo "------------------------"
 			  echo "9. 卸载防御程序"
 			  echo "------------------------"
-			  echo "0. 退出"
+			  echo "0. 返回上一级选单"
 			  echo "------------------------"
 			  read -e -p "请输入你的选择: " sub_choice
 			  case $sub_choice in
@@ -7307,7 +7373,7 @@ linux_ldnmp() {
 			  echo "------------------------"
 			  echo "1. 标准模式              2. 高性能模式 (推荐2H2G以上)"
 			  echo "------------------------"
-			  echo "0. 退出"
+			  echo "0. 返回上一级选单"
 			  echo "------------------------"
 			  read -e -p "请输入你的选择: " sub_choice
 			  case $sub_choice in
@@ -7419,7 +7485,7 @@ linux_ldnmp() {
 		  echo "------------------------"
 		  echo "5. 更新完整环境"
 		  echo "------------------------"
-		  echo "0. 返回上一级"
+		  echo "0. 返回上一级选单"
 		  echo "------------------------"
 		  read -e -p "请输入你的选择: " sub_choice
 		  case $sub_choice in
@@ -7791,7 +7857,7 @@ linux_panel() {
 				echo "5. 添加域名访问       6. 删除域名访问"
 				echo "7. 允许IP+端口访问    8. 阻止IP+端口访问"
 				echo "------------------------"
-				echo "0. 返回上一级"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "输入你的选择: " choice
 
@@ -7897,7 +7963,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装           2. 更新           3. 卸载"
 				echo "------------------------"
-				echo "0. 返回上一级"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "输入你的选择: " choice
 
@@ -8222,7 +8288,7 @@ linux_panel() {
 				echo "------------------------"
 				echo "1. 安装           2. 更新           3. 重置密码           4. 卸载"
 				echo "------------------------"
-				echo "0. 返回上一级"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "输入你的选择: " choice
 
@@ -9071,7 +9137,7 @@ linux_work() {
 			  echo "------------------------"
 			  echo "1. 开启            2. 关闭"
 			  echo "------------------------"
-			  echo "0. 返回上一级"
+			  echo "0. 返回上一级选单"
 			  echo "------------------------"
 			  read -e -p "请输入你的选择: " gongzuoqu_del
 			  case "$gongzuoqu_del" in
@@ -9386,7 +9452,9 @@ EOF
 				fi
 				echo ""
 				echo "------------------------"
-				echo "1. IPv4 优先          2. IPv6 优先          3. IPv6 修复工具          0. 退出"
+				echo "1. IPv4 优先          2. IPv6 优先          3. IPv6 修复工具"
+				echo "------------------------"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "选择优先的网络: " choice
 
@@ -9434,7 +9502,9 @@ EOF
 
 				echo -e "当前虚拟内存: ${gl_huang}$swap_info${gl_bai}"
 				echo "------------------------"
-				echo "1. 分配1024MB         2. 分配2048MB         3. 自定义大小         0. 退出"
+				echo "1. 分配1024MB         2. 分配2048MB         3. 分配4096MB         4. 自定义大小"
+				echo "------------------------"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "请输入你的选择: " choice
 
@@ -9450,6 +9520,12 @@ EOF
 
 					;;
 				  3)
+					send_stats "已设置4G虚拟内存"
+					add_swap 4096
+
+					;;
+
+				  4)
 					read -e -p "请输入虚拟内存大小MB: " new_swap
 					add_swap "$new_swap"
 					send_stats "已设置自定义虚拟内存"
@@ -9725,7 +9801,7 @@ EOF
 		  echo "------------------------"
 		  echo "1. 中国大陆【默认】          2. 中国大陆【教育网】          3. 海外地区"
 		  echo "------------------------"
-		  echo "0. 返回上一级"
+		  echo "0. 返回上一级选单"
 		  echo "------------------------"
 		  read -e -p "输入你的选择: " choice
 
@@ -9875,7 +9951,7 @@ EOF
 				echo "------------------------"
 				echo "9. 卸载防御程序"
 				echo "------------------------"
-				echo "0. 退出"
+				echo "0. 返回上一级选单"
 				echo "------------------------"
 				read -e -p "请输入你的选择: " sub_choice
 				case $sub_choice in
@@ -9937,7 +10013,13 @@ EOF
 				echo
 				echo "------------------------------------------------"
 				echo "系统每分钟会检测实际流量是否到达阈值，到达后会自动关闭服务器！"
-				read -e -p "1. 开启限流关机功能    2. 停用限流关机功能    0. 退出  : " Limiting
+				echo "------------------------"
+				echo "1. 开启限流关机功能"
+				echo "2. 停用限流关机功能"
+				echo "------------------------"
+				echo "0. 返回上一级选单"
+				echo "------------------------"
+				read -e -p "请输入你的选择: " Limiting
 
 				case "$Limiting" in
 				  1)
@@ -10272,7 +10354,7 @@ EOF
 			  echo "1. 开启采集"
 			  echo "2. 关闭采集"
 			  echo "--------------------"
-			  echo "0. 返回上一级"
+			  echo "0. 返回上一级选单"
 			  echo "--------------------"
 			  read -e -p "请输入你的选择: " sub_choice
 			  case $sub_choice in
@@ -10364,7 +10446,7 @@ linux_file() {
 		ls --color=auto -x
 		echo "------------------------"
 		echo "1.  进入目录           2.  创建目录             3.  修改目录权限         4.  重命名目录"
-		echo "5.  删除目录           6.  返回上一级目录"
+		echo "5.  删除目录           6.  返回上一级选单目录"
 		echo "------------------------"
 		echo "11. 创建文件           12. 编辑文件             13. 修改文件权限         14. 重命名文件"
 		echo "15. 删除文件"
@@ -10372,7 +10454,7 @@ linux_file() {
 		echo "21. 压缩文件目录       22. 解压文件目录         23. 移动文件目录         24. 复制文件目录"
 		echo "25. 传文件至其他服务器"
 		echo "------------------------"
-		echo "0.  返回上一级"
+		echo "0.  返回上一级选单"
 		echo "------------------------"
 		read -e -p "请输入你的选择: " Limiting
 
@@ -10404,9 +10486,9 @@ linux_file() {
 				rm -rf "$dirname" && echo "目录已删除" || echo "删除失败"
 				send_stats "删除目录"
 				;;
-			6)  # 返回上一级目录
+			6)  # 返回上一级选单目录
 				cd ..
-				send_stats "返回上一级目录"
+				send_stats "返回上一级选单目录"
 				;;
 			11) # 创建文件
 				read -e -p "请输入要创建的文件名: " filename
@@ -10541,8 +10623,8 @@ EOF
 
 
 
-			0)  # 返回上一级
-				send_stats "返回上一级菜单"
+			0)  # 返回上一级选单
+				send_stats "返回上一级选单菜单"
 				break
 				;;
 			*)  # 处理无效输入
@@ -10567,6 +10649,8 @@ cluster_python3() {
 
 
 run_commands_on_servers() {
+
+	install sshpass
 
 	local SERVERS_FILE="$HOME/cluster/servers.py"
 	local SERVERS=$(grep -oP '{"name": "\K[^"]+|"hostname": "\K[^"]+|"port": \K[^,]+|"username": "\K[^"]+|"password": "\K[^"]+' "$SERVERS_FILE")
@@ -10618,7 +10702,7 @@ while true; do
 	  echo -e "${gl_kjlan}14. ${gl_bai}安装docker               ${gl_kjlan}15. ${gl_bai}安装BBR3              ${gl_kjlan}16. ${gl_bai}设置1G虚拟内存"
 	  echo -e "${gl_kjlan}17. ${gl_bai}设置时区到上海           ${gl_kjlan}18. ${gl_bai}开放所有端口	       ${gl_kjlan}51. ${gl_bai}自定义指令"
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
-	  echo -e "${gl_kjlan}0.  ${gl_bai}返回上一级选单"
+	  echo -e "${gl_kjlan}0.  ${gl_bai}返回主菜单"
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
 	  read -e -p "请输入你的选择: " sub_choice
 
@@ -11005,6 +11089,12 @@ else
 
 		rsync|远程同步)
 			rsync_manager
+			;;
+
+		rsync_run)
+			shift
+			send_stats "定时rsync同步"
+			run_task "$@"
 			;;
 
 		disk|硬盘管理)
