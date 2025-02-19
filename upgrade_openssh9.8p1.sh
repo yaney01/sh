@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 设置OpenSSH的版本号
-OPENSSH_VERSION="9.9p1"
+OPENSSH_VERSION="9.9p2"
 
 
 # 检测系统类型
@@ -118,11 +118,11 @@ check_openssh_version() {
 
     # 版本范围
     min_version=8.5
-    max_version=9.7
+    max_version=9.8
 
     if awk -v ver="$current_version" -v min="$min_version" -v max="$max_version" 'BEGIN{if(ver>=min && ver<=max) exit 0; else exit 1}'; then
       check_openssh_test
-      echo "SSH版本: $current_version  在8.5到9.7之间，需要修复。"
+      echo "SSH版本: $current_version  在8.5到9.8之间，需要修复。"
       read -p "确定继续吗？(Y/N): " choice
           case "$choice" in
             [Yy])
@@ -145,7 +145,7 @@ check_openssh_version() {
           esac
     else
       check_openssh_test
-      echo "SSH版本: $current_version  不在8.5到9.7之间，无需修复。"
+      echo "SSH版本: $current_version  不在8.5到9.8之间，无需修复。"
       exit 1
     fi
 
