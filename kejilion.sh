@@ -12,7 +12,7 @@ gl_zi='\033[35m'
 gl_kjlan='\033[96m'
 
 
-canshu="CN"
+canshu="default"
 permission_granted="false"
 ENABLE_STATS="true"
 
@@ -2747,11 +2747,18 @@ donlond_frp() {
 		echo "不支持当前CPU架构: $arch"
 	fi
 
-	# 解压 .tar.gz 文件
-	install tar
-	tar -zxvf frp_*.tar.gz
-	dir_name=$(tar -tzf frp_*.tar.gz | head -n 1 | cut -f 1 -d '/')
-	mv "$dir_name" frp_0.61.0_linux_amd64
+	# 找到最新下载的 frp 文件
+	latest_file=$(ls -t /home/frp/frp_*.tar.gz | head -n 1)
+
+	# 解压该文件
+	tar -zxvf "$latest_file"
+
+	# 获取解压后文件夹的名字
+	dir_name=$(tar -tzf "$latest_file" | head -n 1 | cut -f 1 -d '/')
+
+	# 重命名解压后的文件夹为统一的版本名
+	mv "$dir_name" "frp_0.61.0_linux_amd64"
+
 
 
 }
@@ -9088,12 +9095,43 @@ linux_panel() {
 
 			  ;;
 
+
 		  60)
-			clear
-			send_stats "JumpServer开源堡垒机"
-			check_disk_space 2
-			install_docker
-			curl -sSL ${gh_proxy}github.com/jumpserver/jumpserver/releases/latest/download/quick_start.sh | bash
+
+			local app_name="JumpServer开源堡垒机"
+			local app_text="是一个开源的特权访问管理 (PAM) 工具，该程序占用80端口不支持添加域名访问了"
+			local app_url="官方介绍: https://github.com/jumpserver/jumpserver"
+			local docker_name="jms_web"
+			local docker_port="80"
+			local app_size="2"
+
+			docker_app_install() {
+				curl -sSL ${gh_proxy}github.com/jumpserver/jumpserver/releases/latest/download/quick_start.sh | bash
+				clear
+				echo "已经安装完成"
+				check_docker_app_ip
+				echo "初始用户名: admin"
+				echo "初始密码: ChangeMe"
+			}
+
+
+			docker_app_update() {
+				cd /opt/jumpserver-installer*/
+				./jmsctl.sh upgrade
+				echo "应用已更新"
+			}
+
+
+			docker_app_uninstall() {
+				cd /opt/jumpserver-installer*/
+				./jmsctl.sh uninstall
+				cd /opt
+				rm -rf jumpserver-installer*/
+				rm -rf jumpserver
+				echo "应用已卸载"
+			}
+
+			docker_app_plus
 			  ;;
 
 		  0)
