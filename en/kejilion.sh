@@ -12,7 +12,7 @@ gl_zi='\033[35m'
 gl_kjlan='\033[96m'
 
 
-canshu="CN"
+canshu="default"
 permission_granted="false"
 ENABLE_STATS="true"
 
@@ -34,7 +34,7 @@ quanju_canshu
 
 
 
-# 定义一个函数来执行命令
+# Define a function to execute commands
 run_command() {
 	if [ "$zhushi" -eq 0 ]; then
 		"$@"
@@ -57,9 +57,9 @@ CheckFirstRun_true() {
 
 
 
-# 收集功能埋点信息的函数，记录当前脚本版本号，使用时间，系统版本，CPU架构，机器所在国家和用户使用的功能名称，绝对不涉及任何敏感信息，请放心！请相信我！
-# 为什么要设计这个功能，目的更好的了解用户喜欢使用的功能，进一步优化功能推出更多符合用户需求的功能。
-# 全文可搜搜 send_stats 函数调用位置，透明开源，如有顾虑可拒绝使用。
+# Functions that collect function buried point information, record the current script version number, usage time, system version, CPU architecture, the country of the machine and the function name used by the user. It will definitely not involve any sensitive information, please rest assured! Please believe me!
+# Why do you need to design this function? The purpose is to better understand the functions that users like to use, and further optimize the functions to launch more functions that meet user needs.
+# For the full text, you can search for the send_stats function call location, transparent and open source, and you can refuse to use it if you have any concerns.
 
 
 
@@ -107,7 +107,7 @@ CheckFirstRun_false() {
 	fi
 }
 
-# 提示用户同意条款
+# Prompt the user to agree to the terms
 UserLicenseAgreement() {
 	clear
 	echo -e "${gl_kjlan}欢迎使用科技lion脚本工具箱${gl_bai}"
@@ -241,7 +241,7 @@ remove() {
 }
 
 
-# 通用 systemctl 函数，适用于各种发行版
+# Universal systemctl function, suitable for various distributions
 systemctl() {
 	local COMMAND="$1"
 	local SERVICE_NAME="$2"
@@ -254,7 +254,7 @@ systemctl() {
 }
 
 
-# 重启服务
+# Restart the service
 restart() {
 	systemctl restart "$1"
 	if [ $? -eq 0 ]; then
@@ -264,7 +264,7 @@ restart() {
 	fi
 }
 
-# 启动服务
+# Start the service
 start() {
 	systemctl start "$1"
 	if [ $? -eq 0 ]; then
@@ -274,7 +274,7 @@ start() {
 	fi
 }
 
-# 停止服务
+# Stop service
 stop() {
 	systemctl stop "$1"
 	if [ $? -eq 0 ]; then
@@ -284,7 +284,7 @@ stop() {
 	fi
 }
 
-# 查看服务状态
+# Check service status
 status() {
 	systemctl status "$1"
 	if [ $? -eq 0 ]; then
@@ -947,7 +947,7 @@ enable_ddos_defense() {
 	send_stats "开启DDoS防御"
 }
 
-# 关闭DDoS防御
+# Turn off DDoS Defense
 disable_ddos_defense() {
 	# 关闭防御 DDoS
 	iptables -D DOCKER-USER -p tcp --syn -m limit --limit 500/s --limit-burst 100 -j ACCEPT 2>/dev/null
@@ -966,7 +966,7 @@ disable_ddos_defense() {
 
 
 
-# 管理国家IP规则的函数
+# Functions that manage national IP rules
 manage_country_rules() {
 	local action="$1"
 	local country_code="$2"
@@ -1242,7 +1242,7 @@ check_swap() {
 
 local swap_total=$(free -m | awk 'NR==3{print $2}')
 
-# 判断是否需要创建虚拟内存
+# Determine whether virtual memory needs to be created
 [ "$swap_total" -gt 0 ] || add_swap 1024
 
 
@@ -2243,28 +2243,28 @@ local PROMETHEUS_DIR="/home/docker/monitoring/prometheus"
 local GRAFANA_DIR="/home/docker/monitoring/grafana"
 local NETWORK_NAME="monitoring"
 
-# Create necessary directories
+# create necessary directories
 mkdir -p $PROMETHEUS_DIR
 mkdir -p $GRAFANA_DIR
 
-# Set correct ownership for Grafana directory
+# set correct ownership for graf Ana directory
 chown -R 472:472 $GRAFANA_DIR
 
 if [ ! -f "$PROMETHEUS_DIR/prometheus.yml" ]; then
 	curl -o "$PROMETHEUS_DIR/prometheus.yml" ${gh_proxy}raw.githubusercontent.com/kejilion/config/refs/heads/main/prometheus/prometheus.yml
 fi
 
-# Create Docker network for monitoring
+# create docker network for monitoring
 docker network create $NETWORK_NAME
 
-# Run Node Exporter container
+# run node exporter container
 docker run -d \
   --name=node-exporter \
   --network $NETWORK_NAME \
   --restart unless-stopped \
   prom/node-exporter
 
-# Run Prometheus container
+# run Prometheus container
 docker run -d \
   --name prometheus \
   -v $PROMETHEUS_DIR/prometheus.yml:/etc/prometheus/prometheus.yml \
@@ -2274,7 +2274,7 @@ docker run -d \
   --user 0:0 \
   prom/prometheus:latest
 
-# Run Grafana container
+# run graf Ana container
 docker run -d \
   --name grafana \
   -p 8047:3000 \
@@ -2307,17 +2307,17 @@ tmux_run_d() {
 local base_name="tmuxd"
 local tmuxd_ID=1
 
-# 检查会话是否存在的函数
+# Function that checks whether the session exists
 session_exists() {
   tmux has-session -t $1 2>/dev/null
 }
 
-# 循环直到找到一个不存在的会话名称
+# Loop until a non-existent session name is found
 while session_exists "$base_name-$tmuxd_ID"; do
   local tmuxd_ID=$((tmuxd_ID + 1))
 done
 
-# 创建新的 tmux 会话
+# Create a new tmux session
 tmux new -d -s "$base_name-$tmuxd_ID" "$tmuxd"
 
 
@@ -2561,11 +2561,11 @@ ldnmp_wp() {
 
   restart_ldnmp
   nginx_web_on
-#   echo "数据库名: $dbname"
-#   echo "用户名: $dbuse"
-#   echo "密码: $dbusepasswd"
-#   echo "数据库地址: mysql"
-#   echo "表前缀: wp_"
+# echo "Database name: $dbname"
+# echo "Username: $dbuse"
+# echo "Password: $dbusepasswd"
+# echo "Database Address: mysql"
+# echo "Table prefix: wp_"
 
 }
 
@@ -3083,12 +3083,12 @@ list_forwarding_services() {
 
 
 
-# 获取 FRP 服务端端口
+# Get the FRP server port
 get_frp_ports() {
 	mapfile -t ports < <(ss -tulnape | grep frps | awk '{print $5}' | awk -F':' '{print $NF}' | sort -u)
 }
 
-# 生成访问地址
+# Generate access address
 generate_access_urls() {
 	# 首先获取所有端口
 	get_frp_ports
@@ -3335,7 +3335,7 @@ set_timedate() {
 
 
 
-# 修复dpkg中断问题
+# Fix dpkg interrupt problem
 fix_dpkg() {
 	pkill -9 -f 'apt|dpkg'
 	rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock
@@ -4321,7 +4321,7 @@ clamav() {
 
 
 
-# 高性能模式优化函数
+# High-performance mode optimization function
 optimize_high_performance() {
 	echo -e "${gl_lv}切换到${tiaoyou_moshi}...${gl_bai}"
 
@@ -4362,7 +4362,7 @@ optimize_high_performance() {
 
 }
 
-# 均衡模式优化函数
+# Balanced mode optimization function
 optimize_balanced() {
 	echo -e "${gl_lv}切换到均衡模式...${gl_bai}"
 
@@ -4403,7 +4403,7 @@ optimize_balanced() {
 
 }
 
-# 还原默认设置函数
+# Restore the default settings function
 restore_defaults() {
 	echo -e "${gl_lv}还原到默认设置...${gl_bai}"
 
@@ -4445,7 +4445,7 @@ restore_defaults() {
 
 
 
-# 网站搭建优化函数
+# Website building optimization function
 optimize_web_server() {
 	echo -e "${gl_lv}切换到网站搭建优化模式...${gl_bai}"
 
@@ -4786,7 +4786,7 @@ linux_trash() {
 
 
 
-# 创建备份
+# Create a backup
 create_backup() {
 	send_stats "创建备份"
 	local TIMESTAMP=$(date +"%Y%m%d%H%M%S")
@@ -4844,7 +4844,7 @@ create_backup() {
 	fi
 }
 
-# 恢复备份
+# Restore backup
 restore_backup() {
 	send_stats "恢复备份"
 	# 选择要恢复的备份
@@ -4867,13 +4867,13 @@ restore_backup() {
 	fi
 }
 
-# 列出备份
+# List backups
 list_backups() {
 	echo "可用的备份："
 	ls -1 "$BACKUP_DIR"
 }
 
-# 删除备份
+# Delete backup
 delete_backup() {
 	send_stats "删除备份"
 
@@ -4896,7 +4896,7 @@ delete_backup() {
 	fi
 }
 
-# 备份主菜单
+# Backup main menu
 linux_backup() {
 	BACKUP_DIR="/backups"
 	mkdir -p "$BACKUP_DIR"
@@ -4930,7 +4930,7 @@ linux_backup() {
 
 
 
-# 显示连接列表
+# Show connection list
 list_connections() {
 	echo "已保存的连接:"
 	echo "------------------------"
@@ -4939,7 +4939,7 @@ list_connections() {
 }
 
 
-# 添加新连接
+# Add a new connection
 add_connection() {
 	send_stats "添加新连接"
 	echo "创建新连接示例："
@@ -4999,7 +4999,7 @@ add_connection() {
 
 
 
-# 删除连接
+# Delete the connection
 delete_connection() {
 	send_stats "删除连接"
 	read -e -p "请输入要删除的连接编号: " num
@@ -5021,7 +5021,7 @@ delete_connection() {
 	echo "连接已删除!"
 }
 
-# 使用连接
+# Use connection
 use_connection() {
 	send_stats "使用连接"
 	read -e -p "请输入要使用的连接编号: " num
@@ -5112,13 +5112,13 @@ ssh_manager() {
 
 
 
-# 列出可用的硬盘分区
+# List available hard disk partitions
 list_partitions() {
 	echo "可用的硬盘分区："
 	lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT | grep -v "sr\|loop"
 }
 
-# 挂载分区
+# Mount the partition
 mount_partition() {
 	send_stats "挂载分区"
 	read -p "请输入要挂载的分区名称（例如 sda1）: " PARTITION
@@ -5150,7 +5150,7 @@ mount_partition() {
 	fi
 }
 
-# 卸载分区
+# Uninstall the partition
 unmount_partition() {
 	send_stats "卸载分区"
 	read -p "请输入要卸载的分区名称（例如 sda1）: " PARTITION
@@ -5173,13 +5173,13 @@ unmount_partition() {
 	fi
 }
 
-# 列出已挂载的分区
+# List mounted partitions
 list_mounted_partitions() {
 	echo "已挂载的分区："
 	df -h | grep -v "tmpfs\|udev\|overlay"
 }
 
-# 格式化分区
+# Format partition
 format_partition() {
 	send_stats "格式化分区"
 	read -p "请输入要格式化的分区名称（例如 sda1）: " PARTITION
@@ -5230,7 +5230,7 @@ format_partition() {
 	fi
 }
 
-# 检查分区状态
+# Check partition status
 check_partition() {
 	send_stats "检查分区状态"
 	read -p "请输入要检查的分区名称（例如 sda1）: " PARTITION
@@ -5246,7 +5246,7 @@ check_partition() {
 	fsck "/dev/$PARTITION"
 }
 
-# 主菜单
+# Main Menu
 disk_manager() {
 	send_stats "硬盘管理功能"
 	while true; do
@@ -5277,7 +5277,7 @@ disk_manager() {
 
 
 
-# 显示任务列表
+# Show task list
 list_tasks() {
 	echo "已保存的同步任务:"
 	echo "---------------------------------"
@@ -5285,7 +5285,7 @@ list_tasks() {
 	echo "---------------------------------"
 }
 
-# 添加新任务
+# Add a new task
 add_task() {
 	send_stats "添加新同步任务"
 	echo "创建新同步任务示例："
@@ -5362,7 +5362,7 @@ add_task() {
 	echo "任务已保存!"
 }
 
-# 删除任务
+# Delete the task
 delete_task() {
 	send_stats "删除同步任务"
 	read -e -p "请输入要删除的任务编号: " num
@@ -5465,7 +5465,7 @@ run_task() {
 }
 
 
-# 创建定时任务
+# Create a timed task
 schedule_task() {
 	send_stats "添加同步定时任务"
 
@@ -5504,7 +5504,7 @@ schedule_task() {
 	echo "定时任务已创建: $cron_job"
 }
 
-# 查看定时任务
+# View scheduled tasks
 view_tasks() {
 	echo "当前的定时任务:"
 	echo "---------------------------------"
@@ -5512,7 +5512,7 @@ view_tasks() {
 	echo "---------------------------------"
 }
 
-# 删除定时任务
+# Delete the timed task
 delete_task_schedule() {
 	send_stats "删除同步定时任务"
 	read -e -p "请输入要删除的任务编号: " num
@@ -5526,7 +5526,7 @@ delete_task_schedule() {
 }
 
 
-# 任务管理主菜单
+# Task Management Main Menu
 rsync_manager() {
 	CONFIG_FILE="$HOME/.rsync_tasks"
 	CRON_FILE="$HOME/.rsync_cron"

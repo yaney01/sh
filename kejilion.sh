@@ -9280,7 +9280,7 @@ linux_panel() {
 			local docker_url="官网介绍: https://github.com/LibreTranslate/LibreTranslate"
 			local docker_use=""
 			local docker_passwd=""
-			local app_size="2"
+			local app_size="5"
 			docker_app
 			  ;;
 
@@ -9308,8 +9308,9 @@ linux_panel() {
 				cd  /home/docker/ragflow/docker/ && docker compose down --rmi all
 				cd  /home/docker/ragflow/
 				git pull origin main
+				cd  /home/docker/ragflow/docker/
 				sed -i 's/- 80:80/- 8062:80/; /- 443:443/d' docker-compose.yml
-				cd  /home/docker/ragflow/docker/ && docker compose up -d
+				docker compose up -d
 			}
 
 			docker_app_uninstall() {
