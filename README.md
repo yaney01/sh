@@ -1,6 +1,33 @@
-# 科技lion一键脚本工具 (kejilion.sh)
+<br><br><br>
+<div align="center">
+  <img src="https://kejilion.sh/kejilionsh_logo.webp?v=2" alt="logo" width="650">
+</div>
 
-[🇨🇳 简体中文](/README.md) | [🇹🇼 繁體中文](/README.tw.md) | [🇺🇸 English](/README.md) | [🇰🇷 한국어](/README.kr.md) | [🇯🇵 日本語](/README.ja.md)
+<div align="center" style="margin-top:-200px;">
+  <h1 style="font-size:150px;">KEJILION.SH - 科技lion一键脚本工具</h1>
+</div>
+
+
+<p align="center">
+  <a href="/README.md">
+    <img src="https://img.shields.io/badge/简体中文-2F4F4F?style=for-the-badge&logo=google-chrome&logoColor=white" alt="简体中文" style="margin: 5px;">
+  </a> 
+  <a href="/README.tw.md">
+    <img src="https://img.shields.io/badge/繁體中文-2F4F4F?style=for-the-badge&logo=google-chrome&logoColor=white" alt="繁體中文" style="margin: 5px;">
+  </a>
+  <a href="/README.md">
+    <img src="https://img.shields.io/badge/English-2F4F4F?style=for-the-badge&logo=google-chrome&logoColor=white" alt="English" style="margin: 5px;">
+  </a>
+  <a href="/README.kr.md">
+    <img src="https://img.shields.io/badge/한국어-2F4F4F?style=for-the-badge&logo=google-chrome&logoColor=white" alt="한국어" style="margin: 5px;">
+  </a>
+  <a href="/README.ja.md">
+    <img src="https://img.shields.io/badge/日本語-2F4F4F?style=for-the-badge&logo=google-chrome&logoColor=white" alt="日本語" style="margin: 5px;">
+  </a>
+</p>
+
+
+<br><br><br>
 
 
 ## 📜 介绍 (Introduction)
@@ -8,23 +35,46 @@
 
 KejiLion's Shell script tool is an all-in-one script toolbox designed for Linux monitoring, testing, and management. Whether you are a beginner or an experienced user, this tool offers convenient solutions. It integrates unique Docker management features, enabling easy containerized application management. The LNMP site-building solution helps you quickly set up websites, covering optimization, defense, backup, restoration, and migration. It also includes the installation and use of various system tool panels, making system maintenance simpler. Our goal is to become the best Linux one-click script tool on the internet, providing users with efficient and convenient tech support.
 
-***
+<br><br>
 
 ## 🌐 支持系统 (Supported Systems)
-<p>
-  <kbd>Ubuntu</kbd>
-  <kbd>Debian</kbd>
-  <kbd>CentOS</kbd>
-  <kbd>Alpine</kbd>
-  <kbd>Kali</kbd>
-  <kbd>Arch</kbd>
-  <kbd>RedHat</kbd>
-  <kbd>Fedora</kbd>
-  <kbd>Alma</kbd>
-  <kbd>Rocky</kbd>
+
+<p align="left">
+  <a href="#">
+    <img src="https://img.shields.io/badge/Ubuntu-FFB6C1?style=for-the-badge&logo=ubuntu&logoColor=black" alt="Ubuntu" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Debian-AFEEEE?style=for-the-badge&logo=debian&logoColor=black" alt="Debian" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/CentOS-98FB98?style=for-the-badge&logo=centos&logoColor=black" alt="CentOS" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Alpine-ADD8E6?style=for-the-badge&logo=alpine&logoColor=black" alt="Alpine" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Kali-D3D3D3?style=for-the-badge&logo=kali-linux&logoColor=black" alt="Kali" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Arch-FFFFE0?style=for-the-badge&logo=archlinux&logoColor=black" alt="Arch" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/RedHat-FFE4E1?style=for-the-badge&logo=redhat&logoColor=black" alt="RedHat" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Fedora-FFD700?style=for-the-badge&logo=fedora&logoColor=black" alt="Fedora" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Alma-FFEFD5?style=for-the-badge&logo=alma-linux&logoColor=black" alt="Alma" style="margin: 5px;">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/Rocky-FFFACD?style=for-the-badge&logo=rocky-linux&logoColor=black" alt="Rocky" style="margin: 5px;">
+  </a>
 </p>
 
-***
+
+
+<br><br>
 
 ## 🚀 一键安装 (One-Click Installation) CN
 ```bash
@@ -35,7 +85,8 @@ bash <(curl -sL kejilion.sh)
 ```bash
 bash <(curl -sL kejilion.sh) en
 ```
-***
+
+<br><br>
 ## 📦 核心功能 (Core Features)
 
 - **系统信息概览**：快速展示 CPU、内存、磁盘、带宽等运行状态  
@@ -65,7 +116,8 @@ bash <(curl -sL kejilion.sh) en
 - **自动更新机制**：定时检测脚本版本，保持最新最稳定  
   *Auto-update engine: ensure you're always running the latest version*<br>
 
-***
+
+<br><br>
 
 ## 💖 支持我们 (Support Us)
 觉得脚本还可以 USTD TRC20 打赏
@@ -74,7 +126,7 @@ Feel free to support us with USTD TRC20 donations.
 
 <strong style="color: navy;">TCP3PLGUTG9Z4z4tnHHSLbw5bgp8NXhTT3</strong>
 
-***
+<br><br>
 
-## Star History
+## ⭐ Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=kejilion/sh&type=Date)](https://star-history.com/#kejilion/sh&Date)
