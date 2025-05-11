@@ -3399,6 +3399,7 @@ yt_menu_pro() {
 		fi
 
 		clear
+		send_stats "yt-dlp 下载工具"
 		echo -e "yt-dlp $YTDLP_STATUS"
 		echo -e "yt-dlp 是一个功能强大的视频下载工具，支持 YouTube、Bilibili、Twitter 等数千站点。"
 		echo -e "官网地址：https://github.com/yt-dlp/yt-dlp"
@@ -3406,10 +3407,10 @@ yt_menu_pro() {
 		echo "已下载视频列表:"
 		ls -td "$VIDEO_DIR"/*/ 2>/dev/null || echo "（暂无）"
 		echo "-------------------------"
-		echo "1. 安装               2. 更新               3.  卸载"
+		echo "1.  安装               2.  更新               3.  卸载"
 		echo "-------------------------"
-		echo "5. 单个视频下载       6. 批量视频下载       7.  自定义参数下载"
-		echo "8. 下载为MP3音频      9. 删除视频目录       10. Cookie管理（开发中）"
+		echo "5.  单个视频下载       6.  批量视频下载       7.  自定义参数下载"
+		echo "8.  下载为MP3音频      9.  删除视频目录       10. Cookie管理（开发中）"
 		echo "-------------------------"
 		echo "0. 返回上一级选单"
 		echo "-------------------------"
@@ -3417,6 +3418,7 @@ yt_menu_pro() {
 
 		case $choice in
 			1)
+				send_stats "正在安装 yt-dlp..."
 				echo "正在安装 yt-dlp..."
 				install ffmpeg
 				sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
@@ -3424,16 +3426,19 @@ yt_menu_pro() {
 				echo "安装完成。按任意键继续..."
 				read ;;
 			2)
+				send_stats "正在更新 yt-dlp..."
 				echo "正在更新 yt-dlp..."
 				sudo yt-dlp -U
 				echo "更新完成。按任意键继续..."
 				read ;;
 			3)
+				send_stats "正在卸载 yt-dlp..."
 				echo "正在卸载 yt-dlp..."
 				sudo rm -f /usr/local/bin/yt-dlp
 				echo "卸载完成。按任意键继续..."
 				read ;;
 			5)
+				send_stats "单个视频下载"
 				read -e -p "请输入视频链接: " url
 				yt-dlp -P "$VIDEO_DIR" -f "bv*+ba/b" --merge-output-format mp4 \
 					--write-subs --sub-langs all \
@@ -3443,6 +3448,7 @@ yt_menu_pro() {
 					--no-overwrites --no-post-overwrites "$url"
 				read -e -p "下载完成，按任意键继续..." ;;
 			6)
+				send_stats "批量视频下载"
 				install nano
 				if [ ! -f "$URL_FILE" ]; then
 				  echo -e "# 输入多个视频链接地址\n# https://www.bilibili.com/bangumi/play/ep733316?spm_id_from=333.337.0.0&from_spmid=666.25.episode.0" > "$URL_FILE"
@@ -3458,6 +3464,7 @@ yt_menu_pro() {
 					--no-overwrites --no-post-overwrites
 				read -e -p "批量下载完成，按任意键继续..." ;;
 			7)
+				send_stats "自定义视频下载"
 				read -e -p "请输入完整 yt-dlp 参数（不含 yt-dlp）: " custom
 				yt-dlp -P "$VIDEO_DIR" $custom \
 					--write-subs --sub-langs all \
@@ -3467,6 +3474,7 @@ yt_menu_pro() {
 					--no-overwrites --no-post-overwrites
 				read -e -p "执行完成，按任意键继续..." ;;
 			8)
+				send_stats "MP3下载"
 				read -e -p "请输入视频链接: " url
 				yt-dlp -P "$VIDEO_DIR" -x --audio-format mp3 \
 					--write-subs --sub-langs all \
@@ -3477,6 +3485,7 @@ yt_menu_pro() {
 				read -e -p "音频下载完成，按任意键继续..." ;;
 				
 			9)
+				send_stats "删除视频"
 				read -e -p "请输入删除视频名称: " rmdir
 				rm -rf "$VIDEO_DIR/$rmdir"
 				;;
@@ -8073,6 +8082,7 @@ linux_panel() {
 	  echo -e "${gl_kjlan}61.  ${gl_bai}在线翻译服务器			 ${gl_kjlan}62.  ${gl_bai}RAGFlow大模型知识库"
 	  echo -e "${gl_kjlan}63.  ${gl_bai}OpenWebUI自托管AI平台 ${gl_huang}★${gl_bai}             ${gl_kjlan}64.  ${gl_bai}it-tools工具箱"
 	  echo -e "${gl_kjlan}65.  ${gl_bai}n8n自动化工作流平台 ${gl_huang}★${gl_bai}               ${gl_kjlan}66.  ${gl_bai}yt-dlp视频下载工具"
+	  echo -e "${gl_kjlan}67.  ${gl_bai}ddns-go动态DNS管理工具 ${gl_huang}★${gl_bai}"
 	  echo -e "${gl_kjlan}------------------------"
 	  echo -e "${gl_kjlan}0.   ${gl_bai}返回主菜单"
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
@@ -9862,13 +9872,22 @@ linux_panel() {
 
 			docker_rum() {
 
+				add_yuming
 				mkdir -p /home/docker/n8n
 				chmod -R 777 /home/docker/n8n
+
 				docker run -d --name n8n \
 				  --restart always \
 				  -p ${docker_port}:5678 \
 				  -v /home/docker/n8n:/home/node/.n8n \
+				  -e N8N_HOST=${yuming} \
+				  -e N8N_PORT=5678 \
+				  -e N8N_PROTOCOL=https \
+				  -e N8N_WEBHOOK_URL=https://${yuming}/ \
 				  docker.n8n.io/n8nio/n8n
+
+				ldnmp_Proxy ${yuming} ${ipv4_address} ${docker_port}
+				block_container_port "$docker_name" "$ipv4_address"
 
 			}
 
@@ -9883,6 +9902,32 @@ linux_panel() {
 		  66)
 			yt_menu_pro
 			  ;;
+
+
+		  67)
+			local docker_name="ddns-go"
+			local docker_img="jeessy/ddns-go"
+			local docker_port=9876
+
+			docker_rum() {
+				docker run -d \
+						 --name ddns-go \
+						 --restart=always \
+						 -p ${docker_port}:9876 \
+						 -v /home/docker/ddns-go:/root \
+						 jeessy/ddns-go
+
+			}
+
+			local docker_describe="自动将你的公网 IP（IPv4/IPv6）实时更新到各大 DNS 服务商，实现动态域名解析。"
+			local docker_url="官网介绍: https://github.com/CorentinTh/it-tools"
+			local docker_use=""
+			local docker_passwd=""
+			local app_size="1"
+			docker_app
+			  ;;
+
+
 
 		  0)
 			  kejilion
