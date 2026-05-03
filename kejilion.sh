@@ -5611,8 +5611,14 @@ bbrv3() {
 				fi
 				
 				# 兼容官方已移除的老系统代号（回退使用 releases 尝试旧包库）
-				if ! echo "bookworm trixie forky sid noble plucky questing resolute faye gigi wilma xia zara zena jammy" | grep -qw "$os_codename"; then
+				if ! echo "bookworm trixie forky sid noble plucky questing resolute faye gigi wilma xia zara zena" | grep -qw "$os_codename"; then
 					os_codename="releases"
+				fi
+				
+				# 官方已彻底移除对 jammy, focal, bullseye 等老系统的 apt 支持
+				if echo "jammy focal bullseye buster" | grep -qw "$os_codename" || [ "$os_codename" = "releases" ]; then
+					echo -e "${gl_hong}XanMod 官方已停止对当前系统($os_codename)的 APT 源支持，请升级至 Debian12 / Ubuntu24 或更高版本。${gl_bai}"
+					return 1
 				fi
 
 				if [ -z "$os_codename" ]; then
