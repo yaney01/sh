@@ -63,7 +63,7 @@ CheckFirstRun_true() {
 
 
 
-# This function collects function buried information and records the current script version number, usage time, system version, CPU architecture, machine country and function name used by the user. It does not involve any sensitive information, so don’t worry! Please believe me!
+# A function that collects function buried information and records the current script version number, usage time, system version, CPU architecture, machine country and function name used by the user. It does not involve any sensitive information, so don’t worry! Please believe me!
 # Why is this function designed? The purpose is to better understand the functions that users like to use, and to further optimize the functions and launch more functions that meet user needs.
 # The full text can be searched for the send_stats function call location. It is transparent and open source. If you have any concerns, you can refuse to use it.
 
@@ -754,7 +754,7 @@ docker_ipv6_on() {
 	local CONFIG_FILE="/etc/docker/daemon.json"
 	local REQUIRED_IPV6_CONFIG='{"ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64"}'
 
-	# Check if the configuration file exists, if not create the file and write the default settings
+	# Check if the configuration file exists, if not create the file and write default settings
 	if [ ! -f "$CONFIG_FILE" ]; then
 		echo "$REQUIRED_IPV6_CONFIG" | jq . > "$CONFIG_FILE"
 		restart docker
@@ -2241,7 +2241,7 @@ web_security() {
 					  echo -e "${gl_huang}The website automatically detects every 5 minutes. When it detects high load, it will automatically open the shield, and when it detects low load, it will automatically close the shield for 5 seconds.${gl_bai}"
 					  echo "--------------"
 					  echo "Get CF parameters:"
-					  echo -e "Go to my profile in the upper right corner of the cf backend, select the API token on the left, and get${gl_huang}Global API Key${gl_bai}"
+					  echo -e "Go to my profile in the upper right corner of the cf backend, select the API token on the left, and obtain${gl_huang}Global API Key${gl_bai}"
 					  echo -e "Go to the bottom right of the cf backend domain name summary page to get it${gl_huang}Area ID${gl_bai}"
 					  echo "https://dash.cloudflare.com/login"
 					  echo "--------------"
@@ -3221,7 +3221,7 @@ f2b_sshd() {
 
 # Basic parameter configuration: ban duration (bantime), time window (findtime), number of retries (maxretry)
 # illustrate:
-# - Prioritize writing to /etc/fail2ban/jail.d/sshd.local (overrides the default jail configuration and is not easy to lose when upgrading)
+# - Prioritize writing to /etc/fail2ban/jail.d/sshd.local (overwrites the default jail configuration and is not easy to lose when upgrading)
 # - If it is Alpine and the jail names are different, still write sshd.local; Fail2Ban will match according to the jail name.
 f2b_basic_config() {
 	root_use
@@ -5135,7 +5135,7 @@ sshkey_panel() {
   	  echo -e "User key login mode${IS_KEY_ENABLED}"
   	  echo "Advanced gameplay: https://blog.kejilion.pro/ssh-key"
   	  echo "------------------------------------------------"
-  	  echo "A key pair will be generated, a more secure way to log in via SSH"
+  	  echo "A key pair will be generated for a more secure way to log in via SSH"
 	  echo "------------------------"
 	  echo "1. Generate a new key pair 2. Manually enter an existing public key"
 	  echo "3. Import the existing public key from GitHub 4. Import the existing public key from the URL"
@@ -5746,7 +5746,7 @@ bbrv3() {
 		  if [ -r /etc/os-release ]; then
 			. /etc/os-release
 			if [ "$ID" != "debian" ] && [ "$ID" != "ubuntu" ]; then
-				echo "The current environment does not support it. Only Debian and Ubuntu systems are supported."
+				echo "The current environment does not support it, only Debian and Ubuntu systems are supported."
 				break_end
 				linux_Settings
 			fi
@@ -6155,7 +6155,7 @@ _kernel_optimize_core() {
 		BACKLOG=1000
 	fi
 
-	# ── Additional live broadcast scenarios: UDP buffer enlarged ──
+	# ── Extras for live broadcast scenarios: UDP buffer enlarged ──
 	local STREAM_EXTRA=""
 	if [ "$scene" = "stream" ]; then
 		STREAM_EXTRA="
@@ -6692,9 +6692,9 @@ send_stats "Command Favorites"
 bash <(curl -l -s ${gh_proxy}raw.githubusercontent.com/byJoey/cmdbox/refs/heads/main/install.sh)
 }
 
-# Create backup
+# Create a backup
 create_backup() {
-	send_stats "Create backup"
+	send_stats "Create a backup"
 	local TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 
 	# Prompt user for backup directory
@@ -6736,7 +6736,7 @@ create_backup() {
 		echo "- $path"
 	done
 
-	# Create backup
+	# Create a backup
 	echo "Creating backup$BACKUP_NAME..."
 	install tar
 	tar -czvf "$BACKUP_DIR/$BACKUP_NAME" "${BACKUP_PATHS[@]}"
@@ -8336,7 +8336,7 @@ docker_ssh_migration() {
 
 		echo -e "${gl_huang}Transferring backup...${gl_bai}"
 		if [[ -z "$TARGET_PASS" ]]; then
-			# Log in using key
+			# Log in with key
 			scp -P "$TARGET_PORT" -o StrictHostKeyChecking=no -r "$LATEST_TAR" "$TARGET_USER@$TARGET_IP:/tmp/"
 		fi
 
@@ -10078,7 +10078,7 @@ linux_ldnmp() {
 moltbot_menu() {
 	local app_id="114"
 
-	send_stats "clawdbot/moltbot management"
+	send_stats "clawdbot/moltbot管理"
 
 	check_openclaw_update() {
 		if ! command -v npm >/dev/null 2>&1; then
@@ -10143,7 +10143,7 @@ moltbot_menu() {
 		echo "--------------------"
 		echo "4. View status log"
 		echo "5. Change model"
-		echo "6. API Management"
+		echo "6. API management"
 		echo "7. Robot connection and docking"
 		echo "8. Plug-in management (installation/removal)"
 		echo "9. Skill management (installation/removal)"
@@ -10432,7 +10432,7 @@ for name, provider in list(providers.items()):
         summary.append(f'🔁 {name}: /models Successful after {attempts} retry')
 
     if not (isinstance(data, dict) and isinstance(data.get('data'), list)):
-        summary.append(f'⚠️ Skip {name}: /models return structure is not recognized')
+        summary.append(f'⚠️ 跳过 {name}: /models 返回结构不可识别')
         continue
 
     remote_ids = []
@@ -10595,7 +10595,7 @@ PY
 
 
 	# OpenClaw API protocol detection logic has been removed: API types are no longer automatically detected/determined.
-	# Note: The API type is explicitly configured by the user (models.providers.<name>.api), and the script no longer attempts to call /responses for inference.
+	# Note: The API type is configured explicitly by the user (models.providers.<name>.api), and the script no longer attempts to call /responses for inference.
 
 	# Construct model configuration JSON
 	build-openclaw-provider-models-json() {
@@ -10797,7 +10797,7 @@ EOF
 			echo
 		done
 
-		# 4. No longer detecting/determining API types; protocols are selected and maintained by users themselves
+		# 4. No longer detecting/judging API types; protocols are selected and maintained by users themselves
 
 		# 5. Get model list
 		echo "🔍 Getting list of available models..."
@@ -13870,7 +13870,7 @@ EOF
 		model_path=$(openclaw_memory_expand_path "$model_path")
 		model_status=$(openclaw_memory_local_model_status "$model_path")
 		if [ "$model_status" = "ok" ]; then
-			echo "✅ The model file already exists:$model_path"
+			echo "✅ Model file already exists:$model_path"
 			OPENCLAW_MEMORY_MODEL_PATH="$model_path"
 		else
 			local model_name="embeddinggemma-300M-Q8_0.gguf"
@@ -14051,7 +14051,7 @@ EOF
 		echo "======================================="
 		echo "Index repair diagnostics"
 		echo "======================================="
-		echo "Current includeDefaultMemory: ${include_dm:-not set}"
+		echo "Currently includeDefaultMemory: ${include_dm:-not set}"
 		echo ""
 		if [ "$include_dm" = "false" ]; then
 			echo "⚠️ includeDefaultMemory=false detected"
@@ -14073,7 +14073,7 @@ EOF
 			fi
 		else
 			echo "includeDefaultMemory configuration is normal."
-			echo "Will be executed: Clean old indexes → Fully rebuild all agent indexes"
+			echo "Will be executed: clean old indexes → fully rebuild all agent indexes"
 			echo ""
 			read -e -p "Confirm execution? (Y/n):" confirm_fix
 			if [[ ! "$confirm_fix" =~ ^[Nn]$ ]]; then
@@ -14406,7 +14406,7 @@ EOF
 
 	openclaw_permission_restart_gateway() {
 		if ! openclaw_has_command openclaw; then
-			echo "❌ openclaw is not detected and OpenClaw Gateway cannot be restarted."
+			echo "❌ OpenClaw is not detected and OpenClaw Gateway cannot be restarted."
 			return 1
 		fi
 		echo "Restarting OpenClaw Gateway..."
@@ -15100,7 +15100,7 @@ for idx,item in enumerate(agents,1):
 			local name theme
 			read -e -p "Please enter the agent identity name (e.g.: Code Expert):" name
 			[ -z "$name" ] && name="$agent_id"
-			read -e -p "Please enter the agent personality theme (eg: rigorous, efficient):" theme
+			read -e -p "Please enter the agent personality theme (for example: rigorous, efficient):" theme
 			[ -z "$theme" ] && theme="assistant"
 			echo "Configuring agent identity..."
 			openclaw agents set-identity --agent "$agent_id" --name "$name" --theme "$theme"
@@ -15599,7 +15599,7 @@ while true; do
 
 	  echo -e "${gl_kjlan}1.   ${color1}Pagoda panel official version${gl_kjlan}2.   ${color2}aaPanel Pagoda International Version"
 	  echo -e "${gl_kjlan}3.   ${color3}1Panel new generation management panel${gl_kjlan}4.   ${color4}NginxProxyManager visualization panel"
-	  echo -e "${gl_kjlan}5.   ${color5}OpenList multi-store file list program${gl_kjlan}6.   ${color6}Ubuntu Remote Desktop Web Edition"
+	  echo -e "${gl_kjlan}5.   ${color5}OpenList multi-store file list program${gl_kjlan}6.   ${color6}Ubuntu Remote Desktop Web Version"
 	  echo -e "${gl_kjlan}7.   ${color7}Nezha Probe VPS Monitoring Panel${gl_kjlan}8.   ${color8}QB offline BT magnetic download panel"
 	  echo -e "${gl_kjlan}9.   ${color9}Poste.io mail server program${gl_kjlan}10.  ${color10}RocketChat multi-person online chat system"
 	  echo -e "${gl_kjlan}-------------------------"
@@ -17515,7 +17515,7 @@ while true; do
 
 		}
 
-		local docker_describe="OpenWebUI is a large language model web page framework, the official simplified version supports API access to all major models."
+		local docker_describe="OpenWebUI is a large language model web page framework, the official streamlined version supports API access to all major models."
 		local docker_url="Official website introduction:${gh_https_url}github.com/open-webui/open-webui"
 		local docker_use=""
 		local docker_passwd=""
@@ -17680,7 +17680,7 @@ while true; do
 
 		}
 
-		local docker_describe="Open source AI chatbot framework, supporting WeChat, QQ, and TG access to large AI models"
+		local docker_describe="Open source AI chatbot framework, supporting WeChat, QQ, and TG access to AI large models"
 		local docker_url="Official website introduction: https://astrbot.app/"
 		local docker_use="echo \"Username: astrbot Password: astrbot\""
 		local docker_passwd=""
@@ -19439,7 +19439,7 @@ linux_work() {
 	  send_stats "Backend workspace"
 	  echo -e "Backend workspace"
 	  echo -e "The system will provide you with a workspace that can run permanently in the background, which you can use to perform long-term tasks."
-	  echo -e "Even if you disconnect SSH, the tasks in the workspace will not be interrupted, and the tasks will remain in the background."
+	  echo -e "Even if you disconnect SSH, the tasks in the workspace will not be interrupted, and the background tasks will persist."
 	  echo -e "${gl_huang}hint:${gl_bai}After entering the workspace, use Ctrl+b and then press d alone to exit the workspace!"
 	  echo -e "${gl_kjlan}------------------------"
 	  echo "List of currently existing workspaces"
@@ -19848,7 +19848,7 @@ log_menu() {
 		case $choice in
 			1)
 				send_stats "View recent logs"
-				read -erp "How many recent log lines have you viewed? [Default 100]:" lines
+				read -erp "View the most recent log lines? [Default 100]:" lines
 				lines=${lines:-100}
 				journalctl -n "$lines" --no-pager
 				read -erp "Press Enter to continue..."
@@ -20193,7 +20193,7 @@ linux_Settings() {
 			echo "python version management"
 			echo "Video introduction: https://www.bilibili.com/video/BV1Pm42157cK?t=0.1"
 			echo "---------------------------------------"
-			echo "This function can seamlessly install any version officially supported by python!"
+			echo "This function can seamlessly install any version officially supported by Python!"
 			local VERSION=$(python3 -V 2>&1 | awk '{print $2}')
 			echo -e "Current python version number:${gl_huang}$VERSION${gl_bai}"
 			echo "------------"
@@ -20379,8 +20379,8 @@ EOF
 						;;
 					2)
 						rm -f /etc/gai.conf
-						echo "Switched to IPv6 priority"
-						send_stats "Switched to IPv6 priority"
+						echo "Switched to IPv6 first"
+						send_stats "Switched to IPv6 first"
 						;;
 
 					3)
@@ -21639,7 +21639,7 @@ echo "------------------------"
 echo -e "${gl_zi}V.PS 6.9 dollars per month Tokyo Softbank 2 cores 1G memory 20G hard drive 1T traffic per month${gl_bai}"
 echo -e "${gl_bai}URL: https://vps.hosting/cart/tokyo-cloud-kvm-vps/?id=148&?affid=1355&?affid=1355${gl_bai}"
 echo "------------------------"
-echo -e "${gl_kjlan}More popular VPS deals${gl_bai}"
+echo -e "${gl_kjlan}More popular VPS offers${gl_bai}"
 echo -e "${gl_bai}Website: https://kejilion.pro/topvps/${gl_bai}"
 echo "------------------------"
 echo ""
@@ -21945,7 +21945,7 @@ echo "Software startup k start sshd | k start sshd"
 echo "Software stop k stop sshd | k stop sshd"
 echo "Software restart k restart sshd | k restart sshd"
 echo "Check software status k status sshd | k status sshd"
-echo "k enable docker | k autostart docker | k enable docker when booting the software"
+echo "k enable docker | k autostart docker | k start docker on startup"
 echo "Domain name certificate application k ssl"
 echo "Domain name certificate expiry query k ssl ps"
 echo "docker management plane k docker"
